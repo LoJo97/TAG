@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+        <meta charset="UTF-8">
+        <title>Water Tag</title>
+    </head>
+    
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="#">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content">
+			<div id="login-form" class="hide">
+				<h1><u>Log In</u></h1>
+				<form>
+					Email:<br>
+					<input class="inputbox" id="txtEmail" type="email"><br>
+					Password:<br>
+					<input class="inputbox" id="txtPassword" type="password"><br>
+				</form><br>
+			
+				<form>
+					<input id="btnLogin" class="btn" type="button" value="Log In"/>
+					<input id="btnSignUp" class="btn btn-secondary" type="button" value="Sign Up" onclick="window.location.href='./signup.html'"/>
+				</form>
+				<p id="error" class="err"></p>
+			</div>
+			<button id="btnLogout" class="btn hide">
+				Log Out
+			</button>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+
+		<script src="login.js"></script>
+	</body>
+</html>

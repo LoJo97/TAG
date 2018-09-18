@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+		<meta charset="UTF-8">
+		<title>Your Stats</title>
+	</head>
+	
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="#">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content hide" id="no-login">
+			Please log in to view your stats
+		</div>
+
+		<div class="content hide" id="login-content">
+			<h1><u id=nickname>Stats for </u></h1>
+			<h3 id="name">Full Name: </h3>
+			<h2><u>Current Game</u></h2>
+			<h3 id="kills">Kills: </h3>
+			<h3 id="status">Status: </h3>
+			<h3 id="target">Target: </h3>
+
+			<button class="btn" id="kill">Kill your target</button>
+
+			<div class="winner hide" id="win">
+				<h1><u><b>YOU WON!!!!!</b></u></h1>
+			</div>
+
+			<h2><u>All time</u></h2>
+			<h3 id="highScore">High Score: </h3>
+			<h3 id="totalKills">Total Kills: </h3>
+			<h3 id="gamesPlayed">Games Played: </h3>
+			<h3 id="gamesWon">Games Won: </h3>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+
+		<script src="playerStats.js"></script>
+
+	</body>
+</html>

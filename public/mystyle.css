@@ -1,0 +1,119 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Style the side navigation */
+.sidenav {
+    height: 100%;
+    width: 200px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #233f88;
+    overflow-x: hidden;
+}
+
+
+/* Side navigation links */
+.sidenav a {
+    color: white;
+    padding: 30px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color on hover */
+.sidenav a:hover {
+    background-color: #0079cf;
+    color: black;
+}
+
+/* Style the content */
+.content {
+    margin-left: 200px;
+    padding-left: 20px;
+}
+
+.button {
+    background-color: #0079cf;
+    border: none;
+    color: white;
+    padding: 15px 25px;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button:hover{
+    background-color: #233f88;
+}
+
+.btn{
+    background-color: #0079cf;
+    border: none;
+    color: white;
+    padding: 25px 40px;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-secondary{
+    background-color: gray;
+}
+
+.hide{
+    visibility: hidden;
+}
+
+table{
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+td{
+    text-align: center;
+}
+
+.err{
+    color: red;
+}
+
+@media screen and (max-width: 1020px){
+    .content{
+        font-size: 3em;
+    }
+
+    .sidenav a{
+        height: 16.6%;
+        padding: 30px;
+        text-align: center;
+        font-size: 2em;
+    }
+
+    .inputbox{
+        width: 500px;
+        padding: 20px 25px;
+        margin: 8px 0;
+        font-size: 1em;
+    }
+
+    .btn{
+        padding: 30px 50px;
+        font-size: 2em;
+        margin: 4px;
+    }
+
+    .tbl{
+        font-size: 1em;
+    }
+}

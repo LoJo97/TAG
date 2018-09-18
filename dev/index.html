@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+        <meta charset="UTF-8">
+        <title>Water Tag</title>
+    </head>
+    
+	<body>
+		<div class="sidenav">
+			<a href="#">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content">
+			<h1><u>Water Tag!</u></h1>
+			<h3><p>Welcome to the Assassins' Water Tag Guild! If you’ve found yourself here looking to have a blast and grow paranoid out of your mind, then you’re  in the right place! Before you get started, be sure to take a good look at the rules.</p>
+			<p><u>RULES:</u></p>
+			<p>1. Thou shalt use a weapon composed strictly of one plastic beverage container, of the particular variety that have caps that screw onto the top. You must poke a hole in said cap to allow your weapon the ability to be fired at unwitting (or witting) opponents. No bottles of the kind that would be typically be referred to as “refillable” shall be utilized.</p>
+			<p>2. Thou shalt use said weapon to spray thine target. Targets shall be assigned by your administrator. If you kill thine target, you shall report said kill in the “Check Stats” page. You will then be assigned your new target.</p>
+			<p>3. Thou shalt not fire thine weapon inside buildings. No one wants to deal with that mess. This doth mean that, should either party, assassin or prey, be indoors at the time of an uncouth firing of the assassin’s weapon, any kill that may have been otherwise had shall be considered as null.</p>
+			<p>4. Thou shalt not bear witness (true or false) against thine neighbor. No one likes a snitch, and remember that dead men tell no tales.</p>
+			<p>5. There is one admin to rule them all,</p>
+			<p>one admin to find them,</p>
+			<p>one admin to bring them all,</p>
+			<p>and in water tag bind them…</p>
+			<p>In other words, your administrator’s rulings are final. This website is for making the game easier on your admin. Please, respect your leader, respect the game.</p>
+			<p style="color: white">6. Jesus is watching.</p></h3>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+		<script>
+  			// Initialize Firebase
+  			var config = {
+    			apiKey: "AIzaSyChDtDILPRAsEo4AVLtQslhaYhTNYHjEeE",
+    			authDomain: "watertag-6ffd8.firebaseapp.com",
+    			databaseURL: "https://watertag-6ffd8.firebaseio.com",
+    			projectId: "watertag-6ffd8",
+    			storageBucket: "watertag-6ffd8.appspot.com",
+    			messagingSenderId: "347326684747"
+  			};
+  			firebase.initializeApp(config);
+		</script>
+
+		<script src="water_tag_script.js"></script>
+	</body>
+</html>

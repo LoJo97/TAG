@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+        <meta charset="UTF-8">
+        <title>Join Game</title>
+    </head>
+    
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="#">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content">
+			<h1><u>Join Game</u></h1>
+			<p class="hide" id="logoutMessage">Please log in to join a game</p>
+			<div class="hide" id="join">
+				<p>Input the ID of the game you'd like to join:</p>
+				<input id="txtGameID" class="inputbox"><br>
+				<button class="btn" id="btnJoin">Join Game</button>
+			</div>
+			<p id="error" class="err"></p>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+		
+		<script src="joinGame.js"></script>
+	</body>
+</html>

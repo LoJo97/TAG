@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+		<meta charset="UTF-8">
+		<title>Admin</title>
+	</head>
+
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="#">Admin</a>
+		</div>
+
+		<div class="content hide" id="no-login">
+			Please log in as an admin to view your game
+		</div>
+
+		<div class="content hide" id="login-content">
+			<h1><u id="gameID"></u></h1>
+			<h3 id="status"></h3>
+			<h3 id="numPlayers"></h3>
+			<h3>Player list:</h3>
+			<h3>
+				<table class="tbl" id="playerList">
+					<tr class="tbl">
+						<th class="tbl">Name</th>
+						<th>Nickname</th>
+						<th>Kills</th>
+						<th>Status</th>
+						<th>Target</th>
+					</tr>
+				</table>
+
+			</h3>
+			<button class="btn hide" id="start">Begin Game</button><br>
+			<button class="btn hide" id="shuffle">Shake it up!</button>
+		</div> 
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+
+		<script src="admin.js"></script>
+
+	</body>
+</html>

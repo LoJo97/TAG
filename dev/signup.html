@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+        <meta charset="UTF-8">
+        <title>Water Tag</title>
+    </head>
+    
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="./createGame.html">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content">
+			<h1><u>Sign Up</u></h1>
+			<form>
+				Email:<br>
+				<input id="txtEmail" class="inputbox" type="email"><br>
+				Password:<br>
+				<input id="txtPassword" class="inputbox" type="password"><br>
+				Confirm Password:<br>
+				<input id="txtConfirmPassword" class="inputbox" type="password"><br>
+				Full Name:<br>
+				<input id="txtFullName" class="inputbox" type="name"><br>
+				Nickname:<br>
+				<input id="txtNickName" class="inputbox" type="nickname"><br>
+			</form><br>
+			
+			<form>
+				<input id="btnSignUp" class="btn" type="button" value="Sign Up"/>
+				<input class="btn btn-secondary" type="button" value="Back" onclick="window.location.href='./login.html'"/>
+			</form> 
+			<p class="err" id="error"></p>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+
+		<script src="signup.js"></script>
+	</body>
+</html>

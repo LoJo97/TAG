@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="stylesheet" type="text/css" href="mystyle.css">
+        <meta charset="UTF-8">
+        <title>Create Game</title>
+    </head>
+    
+	<body>
+		<div class="sidenav">
+			<a href="./index.html">Home</a>
+			<a href="#">Create Game</a>
+			<a href="./joinGame.html">Join Game</a>
+			<a href="./login.html">Log In/Out</a>
+			<a href="./playerStats.html">Check Stats</a>
+			<a href="./admin.html">Admin</a>
+		</div>
+
+		<div class="content">
+			<h1><u>Create Game</u></h1>
+			<p class="hide" id="logoutMessage">Please log in to create a game</p>
+			<button class="btn hide" id="gameCreator">Create Game</button>
+			<p id="error" class="err"></p>
+		</div>
+
+		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
+		
+		<script src="createGame.js"></script>
+	</body>
+</html>
