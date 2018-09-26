@@ -9,129 +9,192 @@ var config = {
 };
 firebase.initializeApp(config);
 
-let playerArr = new Array();
+//Keeps track of data
+let userData = {};
+let playerData = {};
+let gameData = {};
+
+//Stores the buttons
 let buttonStart = document.getElementById('start');
 let buttonShuffle = document.getElementById('shuffle');
+let buttonEnd = document.getElementById('end');
+let buttonDeTarget = document.getElementById('deTarget');
+let buttonKillIdle = document.getElementById('killIdle');
 
 //Add a realtime listener
 firebase.auth().onAuthStateChanged(firebaseUser => {
 	if(firebaseUser){
-		let userRef = firebase.database().ref('users/' + firebaseUser.uid);
+		let userRef = firebase.database().ref('users/' + firebaseUser.uid); //Ref for the logged in user
 		
-		//Construct the array of players
+		//Construct the map of player data
 		userRef.once('value', function(snapshot){
+			userData = snapshot.val();
 			if(snapshot.val().isAdmin){ //Is admin, creates player array and prints player table
-				let gameRef = firebase.database().ref('games/' + snapshot.val().gameInChargeOf);
+				let gameRef = firebase.database().ref('games/' + snapshot.val().gameInChargeOf); //Ref for the game the user admins
 				
-				document.getElementById('login-content').classList.remove('hide');
+				document.getElementById('login-content').classList.remove('hide'); //Displays the content of the page
 
-				//Takes care of text content and game status
 				gameRef.on('value', function(snapshot2){
-					if(snapshot2.val().isFinished){
-						document.getElementById('start').classList.add('hide');
-						document.getElementById('shuffle').classList.add('hide');
+					gameData = snapshot2.val();
+					//Displays content and game status
+					if(gameData.isFinished){ //Finished game
+						buttonStart.classList.add('hide');
+						buttonShuffle.classList.add('hide');
+						buttonDeTarget.classList.add('hide');
+						buttonKillIdle.classList.add('hide');
+						buttonEnd.classList.add('hide');
 						document.getElementById('status').textContent = `Status: Finished`;
-					}else if(!snapshot2.val().isLive){
-						document.getElementById('start').classList.remove('hide');
-						document.getElementById('shuffle').classList.add('hide');
+					}else if(!gameData.isLive){ //Registration phase
+						buttonStart.classList.remove('hide');
+						buttonShuffle.classList.add('hide');
+						buttonDeTarget.classList.add('hide');
+						buttonKillIdle.classList.add('hide');
+						buttonEnd.classList.remove('hide');
 						document.getElementById('status').textContent = `Status: Registration Phase`;
-					}else{
-						document.getElementById('start').classList.add('hide');
-						document.getElementById('shuffle').classList.remove('hide');
+					}else{ //Ongoing game
+						buttonStart.classList.add('hide');
+						buttonShuffle.classList.remove('hide');
+						buttonDeTarget.classList.remove('hide');
+						buttonKillIdle.classList.remove('hide');
+						buttonEnd.classList.remove('hide');
 						document.getElementById('status').textContent = `Status: Ongoing`;
 					}
 					document.getElementById('gameID').textContent = `Game: ${snapshot2.val().id}`;
 					document.getElementById('numPlayers').textContent = `No. of Players: ${snapshot2.val().numPlayers}`;
 				});
+				
+				firebase.database().ref('users').orderByChild('gameId').equalTo(snapshot.val().gameInChargeOf).on('value', function(snapshot3){
+					document.getElementById('playerList').innerHTML
+					= "<tr>" +
+					"<th>Name</th>" +
+					"<th>Nickname</th>" +
+					"<th>Kills</th>" +
+					"<th>Status</th>" +
+					"<th>Target</th>" +
+					"<th>Counter</th>" +
+					"<tr>";
+					snapshot3.forEach(function(data){
+						playerData[data.key] = data.val();
 
-				gameRef.child('players').orderByKey().once('value')
-				.then(function(snapshot2){
-					snapshot2.forEach(function(data){
-						firebase.database().ref('users/' + data.val().pID + '/status').once('value', function(data2){
-							if(data2.val()) playerArr[playerArr.length] = data.val().pID;
-						});
-
-						firebase.database().ref('users/' + data.val().pID).once('value')
-						.then(function(snapshot3){
-							if(snapshot3.val().target){
-								firebase.database().ref('users/' + snapshot3.val().target + '/name').once('value')
-								.then(function(snap4){
-									document.getElementById('playerList').innerHTML 
-									+= "<tr>" + 
-									"<td>" + snapshot3.val().name + "</td>" +
-									"<td>" + snapshot3.val().displayName + "</td>" +
-									"<td>" + snapshot3.val().kills + "</td>" +
-									"<td>" + snapshot3.val().status + "</td>" +
-									"<td>" + snap4.val() + "</td>" +
-									"</tr>";
-								});
-							}else{
+						if(data.val().target){ //If has target
+							firebase.database().ref('users/' + data.val().target).once('value').then(function(target){
 								document.getElementById('playerList').innerHTML 
 								+= "<tr>" + 
-								"<td>" + snapshot3.val().name + "</td>" +
-								"<td>" + snapshot3.val().displayName + "</td>" +
-								"<td>" + snapshot3.val().kills + "</td>" +
-								"<td>" + snapshot3.val().status + "</td>" +
-								"<td>No target</td>" +
+								"<td>" + data.val().name + "</td>" +
+								"<td>" + data.val().displayName + "</td>" +
+								"<td>" + data.val().kills + "</td>" +
+								"<td>" + data.val().status + "</td>" +
+								"<td>" + target.val().name + "</td>" +
+								"<td>" + data.val().counter + "</td>" +
 								"</tr>";
-							}
-						});
+							});
+						}else{ //If no target
+							document.getElementById('playerList').innerHTML 
+							+= "<tr>" + 
+							"<td>" + data.val().name + "</td>" +
+							"<td>" + data.val().displayName + "</td>" +
+							"<td>" + data.val().kills + "</td>" +
+							"<td>" + data.val().status + "</td>" +
+							"<td>No target</td>" +
+							"<td>" + data.val().counter + "</td>" +
+							"</tr>";
+						}
 					});
 				});
 			}else{
-				document.getElementById('no-login').classList.remove('hide');
+				document.getElementById('no-login').classList.remove('hide'); //Show the page for a not logged in user
 			}
 		}, function(errorObject){
 			console.log(`The read failed: ${errorObject.code}`);
 		});
 	}else{
-		console.log('Not logged in');
 		document.getElementById('no-login').classList.remove('hide');
 	}
 });
 
 buttonStart.addEventListener('click', e => {
-	let c = confirm("Are you sure?");
+	let c = confirm('Are you sure?'); //Confirmation alert
+	if(c){ //On confirm
+		if(gameData.numPlayers < 2){
+			alert('You need at least two players for a good game of water tag');
+		}else{
+			let gameRef = firebase.database().ref('games/' + gameData.id);
+			gameRef.update({
+				isLive: true
+			});
+		}
+	}
+});
+
+buttonEnd.addEventListener('click', e => {
+	let c = confirm('Are you sure? Deleted games cannot be recovered.');
 	if(c){
-		firebase.auth().onAuthStateChanged(firebaseUser => {
-			if(firebaseUser){
-				firebase.database().ref('users/' + firebaseUser.uid).child('gameInChargeOf').once('value').then(function(snapshot){
-					let gameRef = firebase.database().ref('games/' + snapshot.val());
-					
-					gameRef.update({
-						isLive: true
-					});
-				});
-			}else{
-				console.log('Not logged in');
-			}
-		});
+		gameData.isFinished = true;
+		gameData.isLive = false;
+
+		for(var playerID in playerData){
+			playerData[playerID].inGame = false;
+			playerData[playerID].kills = 0;
+			playerData[playerID].gameId = null;
+			playerData[playerID].status = true;
+			playerData[playerID].target = null;
+			playerData[playerID].counter = 0;
+			playerData[playerID].killSinceShuffle = false;
+		}
+
+		userData.gameInChargeOf = null;
+		userData.isAdmin = false;
+
+		firebase.database().ref('games/' + gameData.id).update(gameData)
+		.then(() => firebase.database().ref('users/').update(playerData))
+		.then(() => firebase.database().ref('users/' + userData.id).update(userData));
 	}
 });
 
 buttonShuffle.addEventListener('click', e => {
-	let c = confirm("Are you sure?");
+	let c = confirm("Are you sure?"); //Confirmation alert
 	if(c){
-		firebase.auth().onAuthStateChanged(firebaseUser => {
-			if(firebaseUser){
-				shuffle();
-				window.location.assign('./admin.html');
-			}else{
-				console.log('Not logged in');
-			}
-		});
+		shuffle();
+		firebase.database().ref('users/').update(playerData);
 	}
 });
 
-function shuffle(){ // Assigns targets to the assassins
-	let numPlayers = playerArr.length;
-	console.log(numPlayers);
-	let assassinArr = new Array(numPlayers);
-	
-	for(let i = 0; i < numPlayers; i++){ //Randomly puts players into a new array to shuffle them
-		let x = Math.floor(Math.random() * numPlayers);
+buttonDeTarget.addEventListener('click', e => {
+	let c = confirm("Are you sure?");
+	if(c){
+		removeTargets();
+		firebase.database().ref('users/').update(playerData);
+	}
+});
 
-		if(assassinArr[x]){ //Hashing 
+buttonKillIdle.addEventListener('click', e => {
+	let standard = prompt("Enter the number of shuffles since last kill that should be tolerated: ", 3);
+	if(standard){
+		killIdlers(standard);
+		firebase.database().ref('users/').update(playerData);
+	}
+});
+
+function shuffle(){
+	let playerArr = new Array();
+
+	for(playerID in playerData){
+		if(playerData[playerID].status){
+			playerArr[playerArr.length] = playerID;
+			if(!playerData[playerID].killSinceShuffle){
+				playerData[playerID].counter++;
+			}
+			playerData[playerID].killSinceShuffle = false;
+		}
+	}
+
+	let numPlayers = playerArr.length;
+	let assassinArr = new Array(numPlayers);
+
+	for(let i = 0; i < numPlayers; i++){ //Randomly puts living players into a new array to shuffle them
+		let x = Math.floor(Math.random() * numPlayers);
+		//Hashing
+		if(assassinArr[x]){  
 			let j = (x + 1) % numPlayers;
 			while(assassinArr[j]){
 				j = (j + 1) % numPlayers;
@@ -142,15 +205,22 @@ function shuffle(){ // Assigns targets to the assassins
 		}
 	}
 
-	for(let i = 0; i < numPlayers - 1; i++){ //Assigns each player's target to be the player after them
-		assignTarget(assassinArr[i], assassinArr[i + 1]);
+	for(let i = 0; i < numPlayers - 1; i++){
+		playerData[assassinArr[i]].target = assassinArr[i + 1];
 	}
-	assignTarget(assassinArr[numPlayers - 1], assassinArr[0]);
+	playerData[assassinArr[numPlayers - 1]].target = assassinArr[0];
 }
 
-function assignTarget(assassinID, targetID){ //Updates data on the cloud
-	let assassinRef = firebase.database().ref('users/' + assassinID);
-	console.log(assassinID);
-	console.log(targetID);
-	assassinRef.update({target: targetID});
+function removeTargets(){
+	for(playerID in playerData){
+		playerData[playerID].target = null;
+	}
+}
+
+function killIdlers(standard){
+	for(playerID in playerData){
+		if(playerData[playerID].counter >= standard){
+			playerData[playerID].status = false;
+		}
+	}
 }

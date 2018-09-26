@@ -22,44 +22,43 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 		ref.on("value", function(snapshot){
 			if(snapshot.val().inGame){ //Display if user is in a game
 				document.getElementById('nickname').textContent 
-					+= snapshot.val().displayName;
+					= `Stats for: ${snapshot.val().displayName}`;
 				document.getElementById('name').textContent
-					+= snapshot.val().name;
+					= `Full Name: ${snapshot.val().name}`;
 				document.getElementById('kills').textContent
-					+= snapshot.val().kills;
+					= `Kills: ${snapshot.val().kills}`;
 
 				if(snapshot.val().status){
 					document.getElementById('status').textContent
-						+= 'Alive';
+						= 'Status: Alive';
 				}else{
 					document.getElementById('status').textContent
-						+= 'Slain';
+						= 'Status: Slain';
 				}
 
 				if(snapshot.val().target){
-					firebase.database().ref('users/' + snapshot.val().target + '/name').once('value').then(function(snap){
+					firebase.database().ref('users/' + snapshot.val().target).once('value').then(function(snap){
 						document.getElementById('target').textContent
-						= snap.val();
+							= `Target: ${snap.val().name} (AKA ${snap.val().displayName})`;
+
+						document.getElementById('kill').classList
+							.remove('hide');
 					});
 				}else{
 					document.getElementById('target').textContent
 						= 'No target';
+
+					document.getElementById('kill').classList
+						.add('hide');
 				}
 
-				document.getElementById('highScore').textContent
-					+= snapshot.val().highScore;
-				document.getElementById('totalKills').textContent
-					+= snapshot.val().totalKills;
-				document.getElementById('gamesPlayed').textContent
-					+= snapshot.val().gamesPlayed;
-				document.getElementById('gamesWon').textContent
-					+= snapshot.val().gamesWon;
-
+				document.getElementById('counter').textContent
+					= `Counter: ${snapshot.val().counter}`;
 			}else if(snapshot.val().isAdmin){ //Display if user is an admin
 				document.getElementById('nickname').textContent 
 					= `${snapshot.val().displayName} is currently a game admin`;
 				document.getElementById('name').textContent
-					+= snapshot.val().name;
+					= `Full Name: ${snapshot.val().name}`;
 				document.getElementById('kill').classList
 					.add('hide');
 				document.getElementById('kills').textContent
@@ -68,19 +67,11 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 					= '';
 				document.getElementById('target').textContent
 					= '';
-				document.getElementById('highScore').textContent
-					+= snapshot.val().highScore;
-				document.getElementById('totalKills').textContent
-					+= snapshot.val().totalKills;
-				document.getElementById('gamesPlayed').textContent
-					+= snapshot.val().gamesPlayed;
-				document.getElementById('gamesWon').textContent
-					+= snapshot.val().gamesWon;
 			}else{ //Display if a user has no role
 				document.getElementById('nickname').textContent 
-					+= snapshot.val().displayName;
+					= `Stats for: ${snapshot.val().displayName}`;
 				document.getElementById('name').textContent
-					+= snapshot.val().name;
+					= `Full name: ${snapshot.val().name}`;
 				document.getElementById('kills').textContent
 					= `Not in a game. Join one to have some fun!`;
 				document.getElementById('kill').classList.add('hide');
@@ -88,15 +79,16 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 					= '';
 				document.getElementById('target').textContent
 					= '';
-				document.getElementById('highScore').textContent
-					+= snapshot.val().highScore;
-				document.getElementById('totalKills').textContent
-					+= snapshot.val().totalKills;
-				document.getElementById('gamesPlayed').textContent
-					+= snapshot.val().gamesPlayed;
-				document.getElementById('gamesWon').textContent
-					+= snapshot.val().gamesWon;
 			}
+			//Display all time stats
+			document.getElementById('highScore').textContent
+				= `High Score: ${snapshot.val().highScore}`;
+			document.getElementById('totalKills').textContent
+				= `Total Kills: ${snapshot.val().totalKills}`;
+			document.getElementById('gamesPlayed').textContent
+				= `Games Played: ${snapshot.val().gamesPlayed}`;
+			document.getElementById('gamesWon').textContent
+				= `Games Won: ${snapshot.val().gamesWon}`;
 		}, function(errorObject){
 			console.log(`The read failed: ${errorObject.code}`);
 		});
@@ -119,6 +111,7 @@ button.addEventListener('click', e => {
 	}
 });
 
+//Kills player's target and gets the old target's target
 function killTarget(assassinID){
 	let assassinRef = firebase.database().ref('users/' + assassinID);
 	let targetRef;
@@ -127,33 +120,32 @@ function killTarget(assassinID){
 	assassinRef.once('value').then(function(snapshot){
 		targetRef = firebase.database().ref('users/' + snapshot.val().target);
 		player = snapshot.val();
-		console.log('Begin kill');
-		console.log(player);
 	})
 	.then(function(){
-		console.log('then 1');
 		targetRef.once('value').then(function(snapshot){
-			console.log('in ref.once');
-
 			//Updates local player data
 			player.kills++;
 			player.totalKills++;
+			if(player.totalKills > player.highScore){
+				player.highScore = player.totalKills;
+			}
 			player.target = snapshot.val().target;
 
 			//Updates cloud player data
 			assassinRef.update({
 				kills: player.kills,
+				killSinceShuffle: true,
+				counter: 0,
 				totalKills: player.totalKills,
+				highScore: player.highScore,
 				target: player.target
 			})
 			.then(function(){
-				console.log('then 2');
 				targetRef.update({
 					target: null,
 					status: false
 				})
 				.then(function(){
-					console.log('then 3');
 					if(player.target === player.id){
 						endGame(player, assassinRef);
 						document.getElementById('win')
@@ -166,48 +158,64 @@ function killTarget(assassinID){
 }
 
 function endGame(player, assassinRef){
+	let gameRef = firebase.database().ref('games/' + player.gameId);
 	//Updates the winner's data
 	if(player.kills > player.highScore){
 		assassinRef.update({
 			target: null,
 			gamesWon: player.gamesWon + 1,
 			highScore: player.kills
+		})
+		.then(() => {
+			//Updates the game
+			gameRef.update({
+				isFinished: true,
+				isLive: false
+			})
+			.then(function(){
+				//Updates the players
+				gameRef.child('players').orderByKey().once('value')
+				.then(function(snapshot){
+					snapshot.forEach(function(data){
+						firebase.database().ref('users/' + data.val().pID).update({
+							inGame: false,
+							gameId: null,
+							status: true,
+							counter: 0,
+							killSinceShuffle: false
+						});
+					});
+				});
+			});
 		});
 	}else{
 		assassinRef.update({
 			target: null,
 			gamesWon: player.gamesWon + 1
+		})
+		.then(() => {
+			//Updates the game
+			gameRef.update({
+				isFinished: true,
+				isLive: false
+			}).
+			then(function(){
+				//Updates the players
+				gameRef.child('players').orderByKey().once('value')
+				.then(function(snapshot){
+					snapshot.forEach(function(data){
+						firebase.database().ref('users/' + data.val().pID).update({
+							inGame: false,
+							gameId: null,
+							status: true,
+							counter: 0,
+							killSinceShuffle: false
+						});
+					});
+				});
+			});
 		});
 	}
-
-	let gameRef = firebase.database().ref('games/' + player.gameId);
-
-	//Updates the game
-	gameRef.update({
-		isFinished: true,
-		isLive: false
-	}).then(function(){
-		//Updates the players
-		gameRef.child('players').orderByKey().once('value')
-		.then(function(snapshot){
-			snapshot.forEach(function(data){
-				firebase.database().ref('users/' + data.val().pID).update({
-					inGame: false,
-					gameId: null,
-					status: true
-				});
-			});
-		})
-		.then(function(){ //Updates the admin
-			gameRef.child('adminID').once('value').then(function(snapshot){
-				firebase.database.ref('users/' + snapshot.val()).update({
-					gameInChargeOf: null,
-					isAdmin: false
-				});
-			});
-
-		});
-	});
 }
 
 

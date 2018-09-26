@@ -24,26 +24,27 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 button.addEventListener('click', e => {
 	firebase.auth().onAuthStateChanged(firebaseUser => {
 		if(firebaseUser){
-			let gameID = createGameId();
+			let gameID = createGameId(); //Gets new random gameID
 			let userRef = firebase.database().ref('users/' + firebaseUser.uid);
 			let gameRef = firebase.database().ref('games/' + gameID);
 
 			userRef.once("value", function(snapshot){
+				//If a user is an admin or player, don't allow them to create a game
 				if(!snapshot.val().isAdmin){
 					if(!snapshot.val().inGame){
-						gameRef.set({
+						gameRef.set({ //Create game
 							id: gameID,
 							adminID: snapshot.val().id,
 							numPlayers: 0,
 							isLive: false,
 							isFinished: false
 						})
-						.then(() => {
+						.then(() => { //Update the new admin
 							userRef.update({
 								gameInChargeOf: gameID,
 								isAdmin: true
 							})
-							.then(() => {
+							.then(() => { //Redirect
 								window.location.replace('./admin.html');
 							});
 						});
@@ -60,6 +61,6 @@ button.addEventListener('click', e => {
 	});
 });
 
-function createGameId(){
+function createGameId(){ //Random number generator
 	return Math.floor(Math.random() * 1000000);
 }

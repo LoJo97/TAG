@@ -16,7 +16,7 @@ let eMsg = document.getElementById('error');
 button.addEventListener('click', e => {
 	firebase.auth().onAuthStateChanged(firebaseUser => {
 		if(firebaseUser){
-			const gameID = document.getElementById('txtGameID').value;
+			const gameID = parseInt(document.getElementById('txtGameID').value, 10);
 			const userRef = firebase.database().ref('users/' + firebaseUser.uid);
 			const gameRef = firebase.database().ref('games/' + gameID);
 
@@ -26,12 +26,17 @@ button.addEventListener('click', e => {
 						gameRef.once('value', function(snapshot2) {
 							if(snapshot2.val()){
 								if(!snapshot2.val().isLive){
-									let newPlayerRef = gameRef.child('players').push({pID: snapshot.val().id});
-									gameRef.update({numPlayers: snapshot2.val().numPlayers + 1})
-									userRef.update({
-										inGame: true,
-										gameId: gameID,
-										gamesPlayed: snapshot.val().gamesPlayed + 1
+									let newPlayerRef = gameRef.child('players').push({pID: snapshot.val().id})
+									.then(() => {
+										gameRef.update({numPlayers: snapshot2.val().numPlayers + 1})
+										.then(() => {
+											userRef.update({
+												inGame: true,
+												gameId: gameID,
+												gamesPlayed: snapshot.val().gamesPlayed + 1
+											})
+											.then(() => window.location.replace('./playerStats.html'));
+										});
 									});
 								}else{
 									eMsg.innerText = 'Sorry, that game is already in progress';

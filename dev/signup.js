@@ -46,11 +46,14 @@ btnSignUp.addEventListener('click', e => {
 					status: true,
 					isAdmin: false,
 					inGame: false,
+					killSinceShuffle: false,
+					counter: 0,
 					highScore: 0,
 					totalKills: 0,
 					gamesWon: 0,
 					gamesPlayed: 0
-				}).then(() => window.location.replace('./playerStats.html'));
+				})
+				.then(() => window.location.replace('./playerStats.html'));
 			};
 		});
 	}else{
