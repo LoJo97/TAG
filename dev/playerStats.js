@@ -117,11 +117,13 @@ function killTarget(assassinID){
 	let targetRef;
 	let gameRef;
 	let player;
+	let oldTarget;
 
 	assassinRef.once('value').then(function(snapshot){
 		targetRef = firebase.database().ref('users/' + snapshot.val().target);
 		gameRef = firebase.database().ref('games/' + snapshot.val().gameId);
 		player = snapshot.val();
+		oldTarget = snapshot.val().target;
 	})
 	.then(function(){
 		targetRef.once('value').then(function(snapshot){
@@ -154,7 +156,7 @@ function killTarget(assassinID){
 						day: date.getDate(),
 						hour: date.getHours(),
 						minutes: date.getMinutes(),
-						player: player.target
+						player: oldTarget
 					})
 					.then(function(){
 						if(player.target === player.id){
@@ -175,6 +177,7 @@ function endGame(player, assassinRef){
 	if(player.kills > player.highScore){
 		assassinRef.update({
 			target: null,
+			kills: 0,
 			gamesWon: player.gamesWon + 1,
 			highScore: player.kills
 		})
