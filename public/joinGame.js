@@ -5,7 +5,7 @@ var config = {
 	databaseURL: "https://watertag-6ffd8.firebaseio.com",
 	projectId: "watertag-6ffd8",
 	storageBucket: "watertag-6ffd8.appspot.com",
-	messagingSenderId: "347326684747"
+	messagingSenderId: "347326684747" 
 };
 firebase.initializeApp(config);
 
