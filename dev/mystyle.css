@@ -91,10 +91,15 @@ td{
 @media screen and (max-width: 1020px){
     .content{
         font-size: 3em;
+        margin-left: 220px;
+    }
+    
+    .sidenav{
+        width: 220px;
     }
 
     .sidenav a{
-        height: 16.6%;
+        height: 14.2%;
         padding: 30px;
         text-align: center;
         font-size: 2em;
