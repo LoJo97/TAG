@@ -115,11 +115,15 @@ button.addEventListener('click', e => {
 function killTarget(assassinID){
 	let assassinRef = firebase.database().ref('users/' + assassinID);
 	let targetRef;
+	let gameRef;
 	let player;
+	let oldTarget;
 
 	assassinRef.once('value').then(function(snapshot){
 		targetRef = firebase.database().ref('users/' + snapshot.val().target);
+		gameRef = firebase.database().ref('games/' + snapshot.val().gameId);
 		player = snapshot.val();
+		oldTarget = snapshot.val().target;
 	})
 	.then(function(){
 		targetRef.once('value').then(function(snapshot){
@@ -146,11 +150,21 @@ function killTarget(assassinID){
 					status: false
 				})
 				.then(function(){
-					if(player.target === player.id){
-						endGame(player, assassinRef);
-						document.getElementById('win')
-						.classList.remove('hide');
-					}
+					let date = new Date();
+					gameRef.child('killLog').push({
+						month: date.getMonth(),
+						day: date.getDate(),
+						hour: date.getHours(),
+						minutes: date.getMinutes(),
+						player: oldTarget
+					})
+					.then(function(){
+						if(player.target === player.id){
+							endGame(player, assassinRef);
+							document.getElementById('win')
+							.classList.remove('hide');
+						}
+					});
 				});
 			});
 		});
@@ -163,6 +177,7 @@ function endGame(player, assassinRef){
 	if(player.kills > player.highScore){
 		assassinRef.update({
 			target: null,
+			kills: 0,
 			gamesWon: player.gamesWon + 1,
 			highScore: player.kills
 		})

@@ -42,7 +42,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 						buttonShuffle.classList.add('hide');
 						buttonDeTarget.classList.add('hide');
 						buttonKillIdle.classList.add('hide');
-						buttonEnd.classList.add('hide');
+						buttonEnd.classList.remove('hide');
 						document.getElementById('status').textContent = `Status: Finished`;
 					}else if(!gameData.isLive){ //Registration phase
 						buttonStart.classList.remove('hide');
