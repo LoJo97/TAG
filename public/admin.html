@@ -13,7 +13,6 @@
 			<a href="./joinGame.html">Join Game</a>
 			<a href="./login.html">Log In/Out</a>
 			<a href="./playerStats.html">Check Stats</a>
-			<a href="./leaderboard.html">Leaderboard</a>
 			<a href="#">Admin</a>
 		</div>
 
@@ -36,6 +35,13 @@
 			<button class="btn hide" id="killIdle"> Kill Idle Players</button>
 			<button class="btn btn-secondary" id="end">End Game</button>
 		</div> 
+
+		<div id="playerDataModal" class="modal">
+			<div class="modal-content">
+				<span class="close">&times;</span>
+				<p id="playerData"></p>
+			</div>
+		</div>
 
 		<script src="https://www.gstatic.com/firebasejs/5.4.2/firebase.js"></script>
 

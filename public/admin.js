@@ -67,9 +67,6 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 					document.getElementById('playerList').innerHTML
 					= "<tr>" +
 					"<th>Name</th>" +
-					"<th>Nickname</th>" +
-					"<th>Kills</th>" +
-					"<th>Status</th>" +
 					"<th>Target</th>" +
 					"<th>Counter</th>" +
 					"<tr>";
@@ -78,26 +75,28 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 
 						if(data.val().target){ //If has target
 							firebase.database().ref('users/' + data.val().target).once('value').then(function(target){
-								document.getElementById('playerList').innerHTML 
-								+= "<tr>" + 
-								"<td>" + data.val().name + "</td>" +
-								"<td>" + data.val().displayName + "</td>" +
-								"<td>" + data.val().kills + "</td>" +
-								"<td>" + data.val().status + "</td>" +
-								"<td>" + target.val().name + "</td>" +
-								"<td>" + data.val().counter + "</td>" +
-								"</tr>";
+								let table = document.getElementById('playerList');
+
+								let newRow = table.insertRow(1);
+								newRow.addEventListener('click', e => {
+									displayPlayer(data.key);
+								});
+
+								newRow.insertCell(0).innerHTML = data.val().name;
+								newRow.insertCell(1).innerHTML = target.val().name;
+								newRow.insertCell(2).innerHTML = data.val().counter;
 							});
 						}else{ //If no target
-							document.getElementById('playerList').innerHTML 
-							+= "<tr>" + 
-							"<td>" + data.val().name + "</td>" +
-							"<td>" + data.val().displayName + "</td>" +
-							"<td>" + data.val().kills + "</td>" +
-							"<td>" + data.val().status + "</td>" +
-							"<td>No target</td>" +
-							"<td>" + data.val().counter + "</td>" +
-							"</tr>";
+							let table = document.getElementById('playerList');
+
+							let newRow = table.insertRow(1);
+							newRow.addEventListener('click', e => {
+								displayPlayer(data.key);
+							});
+
+							newRow.insertCell(0).innerHTML = data.val().name;
+							newRow.insertCell(1).innerHTML = "No Target";
+							newRow.insertCell(2).innerHTML = data.val().counter;
 						}
 					});
 				});
@@ -223,4 +222,30 @@ function killIdlers(standard){
 			playerData[playerID].status = false;
 		}
 	}
+}
+
+function displayPlayer(id){
+	let player = playerData[id];
+
+	let modal = document.getElementById('playerDataModal');
+	let span = document.getElementsByClassName('close')[0];
+	let content = document.getElementById('playerData');
+
+	modal.style.display = 'block';
+	content.innerHTML = 
+		`<h2>Stats for ${player.name}</h2><br>
+		 <h3>Display Name: ${player.displayName}<br>
+		 Kills: ${player.kills}<br>
+		 Status: ${player.status ? 'Alive' : 'Slain'}<br>
+		 Counter: ${player.counter}</h3>`;
+
+	span.addEventListener('click', () => {
+		modal.style.display = 'none';
+	});
+
+	window.addEventListener('click', e => {
+		if(e.target == modal){
+			modal.style.display = 'none';
+		}
+	});
 }

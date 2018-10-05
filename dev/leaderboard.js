@@ -33,7 +33,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 
 				snapshot.forEach(function(data){
 					if(data.val().gameId === gameID && data.val().kills > 0){
-						leaderArrSize = leaderArr.unshift(`<p>#${leaderArrSize + 1}: ${data.val().displayName === "" ? data.val().name : data.val().displayName} - Kills: ${data.val().kills} - Status: ${data.val().status ? 'Alive' : 'Slain'}</p>`);
+						leaderArrSize = leaderArr.push(`<p>#${leaderArrSize + 1}: ${data.val().displayName === "" ? data.val().name : data.val().displayName} - Kills: ${data.val().kills} - Status: ${data.val().status ? 'Alive' : 'Slain'}</p>`);
 					}
 				});
 
