@@ -88,45 +88,6 @@ td{
     color: red;
 }
 
-@media screen and (max-width: 1020px){
-    .content{
-        font-size: 3em;
-        margin-left: 220px;
-    }
-    
-    .sidenav{
-        width: 220px;
-    }
-
-    .sidenav a{
-        height: 14.2%;
-        padding: 30px;
-        text-align: center;
-        font-size: 2em;
-    }
-
-    .inputbox{
-        width: 500px;
-        padding: 20px 25px;
-        margin: 8px 0;
-        font-size: 1em;
-    }
-
-    .btn{
-        padding: 30px 50px;
-        font-size: 2em;
-        margin: 4px;
-    }
-
-    table{
-        width: 100%;
-    }
-
-    .tbl{
-        font-size: 1em;
-    }
-}
-
 /* The Modal (background) */
 .modal {
     display: none; /* Hidden by default */
@@ -164,4 +125,42 @@ td{
     color: #000;
     text-decoration: none;
     cursor: pointer;
+}
+
+@media screen and (max-width: 1020px){
+    .content{
+        font-size: 3em;
+    }
+
+    .sidenav a{
+        height: 16.7%;
+        padding: 30px;
+        text-align: center;
+        font-size: 2em;
+    }
+
+    .inputbox{
+        width: 500px;
+        padding: 20px 25px;
+        margin: 8px 0;
+        font-size: 1em;
+    }
+
+    .btn{
+        padding: 30px 50px;
+        font-size: 2em;
+        margin: 4px;
+    }
+
+    table{
+        width: 100%;
+    }
+
+    .tbl{
+        font-size: 1em;
+    }
+
+    .modal-content{
+        font-size: 2em;
+    }
 }
