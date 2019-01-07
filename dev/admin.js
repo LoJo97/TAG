@@ -1,12 +1,4 @@
 // Initialize Firebase
-var config = {
-	apiKey: "AIzaSyCSYtxFzgNomtvoSBbn3vuN_-kDl61SxyI",
-	authDomain: "watertagtest.firebaseapp.com",
-	databaseURL: "https://watertagtest.firebaseio.com",
-	projectId: "watertagtest",
-	storageBucket: "",
-	messagingSenderId: "781205798625"
-};
 firebase.initializeApp(config);
 
 //Keeps track of data
