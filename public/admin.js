@@ -1,12 +1,4 @@
 // Initialize Firebase
-var config = {
-	apiKey: "AIzaSyChDtDILPRAsEo4AVLtQslhaYhTNYHjEeE",
-	authDomain: "watertag-6ffd8.firebaseapp.com",
-	databaseURL: "https://watertag-6ffd8.firebaseio.com",
-	projectId: "watertag-6ffd8",
-	storageBucket: "watertag-6ffd8.appspot.com",
-	messagingSenderId: "347326684747"
-};
 firebase.initializeApp(config);
 
 //Keeps track of data
