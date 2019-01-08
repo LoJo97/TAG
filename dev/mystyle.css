@@ -127,9 +127,13 @@ td{
     cursor: pointer;
 }
 
-@media screen and (max-width: 1020px){
+@media screen and (max-width: 767px){
     .content{
-        font-size: 3em;
+        font-size: 10em;
+    }
+
+    .sidenav {
+        height: 30%;
     }
 
     .sidenav a{
