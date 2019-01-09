@@ -18,7 +18,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 	if(firebaseUser){
 		let userRef = firebase.database().ref('users/' + firebaseUser.uid); //Ref for the logged in user
 		
-		//Construct the map of player data
+		//Construct the object of player data
 		userRef.once('value', function(snapshot){
 			userData = snapshot.val();
 			if(snapshot.val().isAdmin){ //Is admin, creates player array and prints player table
@@ -225,11 +225,86 @@ function displayPlayer(id){
 
 	modal.style.display = 'block';
 	content.innerHTML = 
-		`<h2>Stats for ${player.name}</h2><br>
+		`<h2>Stats for ${player.name}</h2>
 		 <h3>Display Name: ${player.displayName}<br>
 		 Kills: ${player.kills}<br>
 		 Status: ${player.status ? 'Alive' : 'Slain'}<br>
 		 Counter: ${player.counter}</h3>`;
+
+	let killButton = document.createElement('button');
+	killButton.innerHTML = 'Kill';
+	killButton.classList.add('btn');
+	killButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			killPlayer(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(killButton);
+
+	let resurrectButton = document.createElement('button');
+	resurrectButton.innerHTML = 'Resurrect';
+	resurrectButton.classList.add('btn');
+	resurrectButton.classList.add('btn-secondary');
+	resurrectButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			resurrectPlayer(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(resurrectButton);
+
+	let addKillButton = document.createElement('button');
+	addKillButton.innerHTML = 'Add Kill';
+	addKillButton.classList.add('btn');
+	addKillButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			incKill(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(addKillButton);
+
+	let decKillButton = document.createElement('button');
+	decKillButton.innerHTML = 'Take Kill';
+	decKillButton.classList.add('btn');
+	decKillButton.classList.add('btn-secondary');
+	decKillButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			decKill(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(decKillButton);
+
+	let addCountButton = document.createElement('button');
+	addCountButton.innerHTML = 'Increase Counter';
+	addCountButton.classList.add('btn');
+	addCountButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			incCounter(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(addCountButton);
+
+	let decCountButton = document.createElement('button');
+	decCountButton.innerHTML = 'Decrease Counter';
+	decCountButton.classList.add('btn');
+	decCountButton.classList.add('btn-secondary');
+	decCountButton.addEventListener('click', () => {
+		let c = confirm("Are you sure?");
+		if(c){
+			decCounter(id);
+			displayPlayer(id);
+		}
+	});
+	content.appendChild(decCountButton);
 
 	span.addEventListener('click', () => {
 		modal.style.display = 'none';
@@ -239,5 +314,98 @@ function displayPlayer(id){
 		if(e.target == modal){
 			modal.style.display = 'none';
 		}
+	});
+}
+
+function killPlayer(id){
+	let player = playerData[id];
+	let assassin;
+
+	for(playerID in playerData){
+		if(playerData[playerID].target === id){
+			assassin = playerData[playerID];
+			break;
+		}
+	}
+	
+	if(assassin){
+		assassin.target = player.target;
+	}
+
+	player.target = null;
+	player.status = false;
+
+	let assassinRef = firebase.database().ref(`users/${assassin.id}`);
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+
+	assassinRef.update({
+		target: assassin.target
+	})
+	.then(() => {
+		playerRef.update({
+			target: player.target,
+			status: player.status
+		});
+	});
+}
+
+function resurrectPlayer(id){
+	let player = playerData[id];
+
+	player.status = true;
+
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+	playerRef.update({
+		status: player.status
+	});
+}
+
+function incKill(id){
+	let player = playerData[id];
+
+	player.kills++;
+	player.totalKills++;
+	if(player.totalKills > player.highScore) player.highScore = player.totalKills;
+
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+	playerRef.update({
+		kills: player.kills,
+		totalKills: player.totalKills,
+		highScore: player.highScore
+	});
+}
+
+function decKill(id){
+	let player = playerData[id];
+
+	player.kills--;
+	player.totalKills--;
+
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+	playerRef.update({
+		kills: player.kills,
+		totalKills: player.totalKills
+	});
+}
+
+function incCounter(id){
+	let player = playerData[id];
+
+	player.counter++;
+
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+	playerRef.update({
+		kills: player.kills
+	});
+}
+
+function decCounter(id){
+	let player = playerData[id];
+
+	player.counter--;
+
+	let playerRef = firebase.database().ref(`users/${player.id}`);
+	playerRef.update({
+		kills: player.kills
 	});
 }
