@@ -36,6 +36,7 @@ button.addEventListener('click', e => {
 							id: gameID,
 							adminID: snapshot.val().id,
 							numPlayers: 0,
+							numLivePlayers: 0,
 							isLive: false,
 							isFinished: false
 						})

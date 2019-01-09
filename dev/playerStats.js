@@ -130,9 +130,6 @@ function killTarget(assassinID){
 			//Updates local player data
 			player.kills++;
 			player.totalKills++;
-			if(player.totalKills > player.highScore){
-				player.highScore = player.totalKills;
-			}
 			player.target = snapshot.val().target;
 
 			//Updates cloud player data
@@ -141,7 +138,6 @@ function killTarget(assassinID){
 				killSinceShuffle: true,
 				counter: 0,
 				totalKills: player.totalKills,
-				highScore: player.highScore,
 				target: player.target
 			})
 			.then(function(){
@@ -157,14 +153,14 @@ function killTarget(assassinID){
 						hour: date.getHours(),
 						minutes: date.getMinutes(),
 						player: oldTarget
-					})
+					})/*
 					.then(function(){
 						if(player.target === player.id){
 							endGame(player, assassinRef);
 							document.getElementById('win')
 							.classList.remove('hide');
 						}
-					});
+					})*/;
 				});
 			});
 		});

@@ -28,7 +28,9 @@ button.addEventListener('click', e => {
 								if(!snapshot2.val().isLive){
 									let newPlayerRef = gameRef.child('players').push({pID: snapshot.val().id})
 									.then(() => {
-										gameRef.update({numPlayers: snapshot2.val().numPlayers + 1})
+										gameRef.update({
+											numPlayers: snapshot2.val().numPlayers + 1
+										})
 										.then(() => {
 											userRef.update({
 												inGame: true,

@@ -110,9 +110,12 @@ buttonStart.addEventListener('click', e => {
 			alert('You need at least two players for a good game of water tag');
 		}else{
 			let gameRef = firebase.database().ref('games/' + gameData.id);
-			gameRef.update({
-				isLive: true
-			});
+			gameRef.once('value').then(snapshot => {
+				gameRef.update({
+					isLive: true,
+					numLivePlayers: snapshot.val().numPlayers
+				});
+			}
 		}
 	}
 });
@@ -347,6 +350,15 @@ function killPlayer(id){
 			status: player.status
 		});
 	});
+
+	let gameRef = firebase.database().ref(`games/${player.gameId}`);
+	gameRef.once('value').then(snapshot => {
+		game = snapshot.val();
+
+		gameRef.update({
+			numLivePlayers: game.numLivePlayers - 1
+		});
+	});
 }
 
 function resurrectPlayer(id){
@@ -357,6 +369,15 @@ function resurrectPlayer(id){
 	let playerRef = firebase.database().ref(`users/${player.id}`);
 	playerRef.update({
 		status: player.status
+	});
+
+	let gameRef = firebase.database().ref(`games/${player.gameId}`);
+	gameRef.once('value').then(snapshot => {
+		game = snapshot.val();
+
+		gameRef.update({
+			numLivePlayers: game.numLivePlayers + 1
+		});
 	});
 }
 
