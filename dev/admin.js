@@ -19,14 +19,14 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 		let userRef = firebase.database().ref('users/' + firebaseUser.uid); //Ref for the logged in user
 		
 		//Construct the object of player data
-		userRef.once('value', function(snapshot){
+		userRef.once('value', snapshot => {
 			userData = snapshot.val();
 			if(snapshot.val().isAdmin){ //Is admin, creates player array and prints player table
 				let gameRef = firebase.database().ref('games/' + snapshot.val().gameInChargeOf); //Ref for the game the user admins
 				
 				document.getElementById('login-content').classList.remove('hide'); //Displays the content of the page
 
-				gameRef.on('value', function(snapshot2){
+				gameRef.on('value', snapshot2 => {
 					gameData = snapshot2.val();
 					//Displays content and game status
 					if(gameData.isFinished){ //Finished game
@@ -55,18 +55,18 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 					document.getElementById('numPlayers').textContent = `No. of Players: ${snapshot2.val().numPlayers}`;
 				});
 				
-				firebase.database().ref('users').orderByChild('gameId').equalTo(snapshot.val().gameInChargeOf).on('value', function(snapshot3){
+				firebase.database().ref('users').orderByChild('gameId').equalTo(snapshot.val().gameInChargeOf).on('value', snapshot3 => {
 					document.getElementById('playerList').innerHTML
 					= "<tr>" +
 					"<th>Name</th>" +
 					"<th>Target</th>" +
 					"<th>Counter</th>" +
 					"<tr>";
-					snapshot3.forEach(function(data){
+					snapshot3.forEach(data => {
 						playerData[data.key] = data.val();
 
 						if(data.val().target){ //If has target
-							firebase.database().ref('users/' + data.val().target).once('value').then(function(target){
+							firebase.database().ref('users/' + data.val().target).once('value').then(target => {
 								let table = document.getElementById('playerList');
 
 								let newRow = table.insertRow(1);
@@ -87,7 +87,8 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 							});
 
 							newRow.insertCell(0).innerHTML = data.val().name;
-							newRow.insertCell(1).innerHTML = "No Target";
+							if(data.val().freeAgent) newRow.insertCell(1).innerHTML = "Free Agent";
+							else 					 newRow.insertCell(1).innerHTML = "No Target";
 							newRow.insertCell(2).innerHTML = data.val().counter;
 						}
 					});
@@ -95,7 +96,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 			}else{
 				document.getElementById('no-login').classList.remove('hide'); //Show the page for a not logged in user
 			}
-		}, function(errorObject){
+		}, errorObject => {
 			console.log(`The read failed: ${errorObject.code}`);
 		});
 	}else{
@@ -115,7 +116,7 @@ buttonStart.addEventListener('click', e => {
 					isLive: true,
 					numLivePlayers: snapshot.val().numPlayers
 				});
-			}
+			});
 		}
 	}
 });
@@ -123,6 +124,14 @@ buttonStart.addEventListener('click', e => {
 buttonEnd.addEventListener('click', e => {
 	let c = confirm('Are you sure? Deleted games cannot be recovered.');
 	if(c){
+		gameData.numLivePlayers = 0; //Triggers cloud function to end game/Doesn't award wins to living players
+
+		userData.gameInChargeOf = null;
+		userData.isAdmin = false;
+
+		firebase.database().ref('games/' + gameData.id).update(gameData)
+		.then(() => firebase.database().ref('users/' + userData.id).update(userData));
+		/*
 		gameData.isFinished = true;
 		gameData.isLive = false;
 
@@ -142,13 +151,15 @@ buttonEnd.addEventListener('click', e => {
 		firebase.database().ref('games/' + gameData.id).update(gameData)
 		.then(() => firebase.database().ref('users/').update(playerData))
 		.then(() => firebase.database().ref('users/' + userData.id).update(userData));
+		*/
 	}
 });
 
 buttonShuffle.addEventListener('click', e => {
-	let c = confirm("Are you sure?"); //Confirmation alert
-	if(c){
-		shuffle();
+	let c1 = confirm("Are you sure?"); //Confirmation alert
+	if(c1){
+		let c2 = confirm("Do you want to add a free agent?");
+		shuffle(c2);
 		firebase.database().ref('users/').update(playerData);
 	}
 });
@@ -169,7 +180,7 @@ buttonKillIdle.addEventListener('click', e => {
 	}
 });
 
-function shuffle(){
+function shuffle(freeAgent){
 	let playerArr = new Array();
 
 	for(playerID in playerData){
@@ -183,6 +194,16 @@ function shuffle(){
 	}
 
 	let numPlayers = playerArr.length;
+
+	//Set the free agent if requested
+	if(freeAgent){
+		let x = Math.floor(Math.random() * numPlayers);
+		let agent = playerArr.splice(x, 1);
+		playerData[agent].freeAgent = true;
+		playerData[agent].target = null;
+		numPlayers--;
+	}
+
 	let assassinArr = new Array(numPlayers);
 
 	for(let i = 0; i < numPlayers; i++){ //Randomly puts living players into a new array to shuffle them
@@ -322,6 +343,9 @@ function displayPlayer(id){
 
 function killPlayer(id){
 	let player = playerData[id];
+
+	if(!player.status) return;
+
 	let assassin;
 
 	for(playerID in playerData){
@@ -364,19 +388,22 @@ function killPlayer(id){
 function resurrectPlayer(id){
 	let player = playerData[id];
 
+	if(player.status) return;
+
 	player.status = true;
 
 	let playerRef = firebase.database().ref(`users/${player.id}`);
 	playerRef.update({
 		status: player.status
-	});
+	})
+	.then(() => {
+		let gameRef = firebase.database().ref(`games/${player.gameId}`);
+		gameRef.once('value').then(snapshot => {
+			game = snapshot.val();
 
-	let gameRef = firebase.database().ref(`games/${player.gameId}`);
-	gameRef.once('value').then(snapshot => {
-		game = snapshot.val();
-
-		gameRef.update({
-			numLivePlayers: game.numLivePlayers + 1
+			gameRef.update({
+				numLivePlayers: game.numLivePlayers + 1
+			});
 		});
 	});
 }

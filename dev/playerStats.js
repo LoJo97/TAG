@@ -1,12 +1,4 @@
 // Initialize Firebase
-var config = {
-	apiKey: "AIzaSyCSYtxFzgNomtvoSBbn3vuN_-kDl61SxyI",
-	authDomain: "watertagtest.firebaseapp.com",
-	databaseURL: "https://watertagtest.firebaseio.com",
-	projectId: "watertagtest",
-	storageBucket: "",
-	messagingSenderId: "781205798625"
-};
 firebase.initializeApp(config);
 
 let button = document.getElementById('kill');
@@ -44,6 +36,12 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 						document.getElementById('kill').classList
 							.remove('hide');
 					});
+				}else if(snapshot.val().freeAgent){
+					document.getElementById('target').textContent
+						= 'Free Agent';
+						
+					document.getElementById('kill').classList
+						.remove('hide');
 				}else{
 					document.getElementById('target').textContent
 						= 'No target';
@@ -119,14 +117,14 @@ function killTarget(assassinID){
 	let player;
 	let oldTarget;
 
-	assassinRef.once('value').then(function(snapshot){
+	assassinRef.once('value').then(snapshot => {
 		targetRef = firebase.database().ref('users/' + snapshot.val().target);
 		gameRef = firebase.database().ref('games/' + snapshot.val().gameId);
 		player = snapshot.val();
 		oldTarget = snapshot.val().target;
 	})
-	.then(function(){
-		targetRef.once('value').then(function(snapshot){
+	.then(() => {
+		targetRef.once('value').then(snapshot => {
 			//Updates local player data
 			player.kills++;
 			player.totalKills++;
@@ -140,12 +138,12 @@ function killTarget(assassinID){
 				totalKills: player.totalKills,
 				target: player.target
 			})
-			.then(function(){
+			.then(() => {
 				targetRef.update({
 					target: null,
 					status: false
 				})
-				.then(function(){
+				.then(() => {
 					let date = new Date();
 					gameRef.child('killLog').push({
 						month: date.getMonth(),
@@ -153,80 +151,9 @@ function killTarget(assassinID){
 						hour: date.getHours(),
 						minutes: date.getMinutes(),
 						player: oldTarget
-					})/*
-					.then(function(){
-						if(player.target === player.id){
-							endGame(player, assassinRef);
-							document.getElementById('win')
-							.classList.remove('hide');
-						}
-					})*/;
+					});
 				});
 			});
 		});
 	});
 }
-
-function endGame(player, assassinRef){
-	let gameRef = firebase.database().ref('games/' + player.gameId);
-	//Updates the winner's data
-	if(player.kills > player.highScore){
-		assassinRef.update({
-			target: null,
-			kills: 0,
-			gamesWon: player.gamesWon + 1,
-			highScore: player.kills
-		})
-		.then(() => {
-			//Updates the game
-			gameRef.update({
-				isFinished: true,
-				isLive: false
-			})
-			.then(function(){
-				//Updates the players
-				gameRef.child('players').orderByKey().once('value')
-				.then(function(snapshot){
-					snapshot.forEach(function(data){
-						firebase.database().ref('users/' + data.val().pID).update({
-							inGame: false,
-							gameId: null,
-							status: true,
-							counter: 0,
-							killSinceShuffle: false
-						});
-					});
-				});
-			});
-		});
-	}else{
-		assassinRef.update({
-			target: null,
-			gamesWon: player.gamesWon + 1
-		})
-		.then(() => {
-			//Updates the game
-			gameRef.update({
-				isFinished: true,
-				isLive: false
-			}).
-			then(function(){
-				//Updates the players
-				gameRef.child('players').orderByKey().once('value')
-				.then(function(snapshot){
-					snapshot.forEach(function(data){
-						firebase.database().ref('users/' + data.val().pID).update({
-							inGame: false,
-							gameId: null,
-							status: true,
-							counter: 0,
-							killSinceShuffle: false
-						});
-					});
-				});
-			});
-		});
-	}
-}
-
-

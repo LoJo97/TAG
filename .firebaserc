@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "watertag-6ffd8"
+    "default": "watertag-6ffd8",
+    "testing": "watertagtest"
   }
 }
