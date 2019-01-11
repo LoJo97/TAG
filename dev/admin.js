@@ -131,27 +131,6 @@ buttonEnd.addEventListener('click', e => {
 
 		firebase.database().ref('games/' + gameData.id).update(gameData)
 		.then(() => firebase.database().ref('users/' + userData.id).update(userData));
-		/*
-		gameData.isFinished = true;
-		gameData.isLive = false;
-
-		for(var playerID in playerData){
-			playerData[playerID].inGame = false;
-			playerData[playerID].kills = 0;
-			playerData[playerID].gameId = null;
-			playerData[playerID].status = true;
-			playerData[playerID].target = null;
-			playerData[playerID].counter = 0;
-			playerData[playerID].killSinceShuffle = false;
-		}
-
-		userData.gameInChargeOf = null;
-		userData.isAdmin = false;
-
-		firebase.database().ref('games/' + gameData.id).update(gameData)
-		.then(() => firebase.database().ref('users/').update(playerData))
-		.then(() => firebase.database().ref('users/' + userData.id).update(userData));
-		*/
 	}
 });
 
