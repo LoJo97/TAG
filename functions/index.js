@@ -46,7 +46,7 @@ exports.repairChain = functions.database.ref('users/{userId}/status') //ON statu
 										});
 
 										if(assassin){ //If assassin exists, update target to deceased player's target
-											return admin.database.ref(`users/${assassin.id}`).update({
+											return admin.database().ref(`users/${assassin.id}`).update({
 												target: target
 											});
 										}
