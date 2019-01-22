@@ -169,6 +169,7 @@ function shuffle(freeAgent){
 				playerData[playerID].counter++;
 			}
 			playerData[playerID].killSinceShuffle = false;
+			playerData[playerID].freeAgent = false;
 		}
 	}
 
@@ -208,6 +209,7 @@ function shuffle(freeAgent){
 function removeTargets(){
 	for(playerID in playerData){
 		playerData[playerID].target = null;
+		playerData[playerID].freeAgent = false;
 	}
 }
 
@@ -215,6 +217,7 @@ function killIdlers(standard){
 	for(playerID in playerData){
 		if(playerData[playerID].counter >= standard){
 			playerData[playerID].status = false;
+			playerData[playerID].freeAgent = false;
 		}
 	}
 }
@@ -324,43 +327,12 @@ function killPlayer(id){
 	let player = playerData[id];
 
 	if(!player.status) return;
-
-	let assassin;
-
-	for(playerID in playerData){
-		if(playerData[playerID].target === id){
-			assassin = playerData[playerID];
-			break;
-		}
-	}
-	
-	if(assassin){
-		assassin.target = player.target;
-	}
-
-	player.target = null;
 	player.status = false;
 
-	let assassinRef = firebase.database().ref(`users/${assassin.id}`);
 	let playerRef = firebase.database().ref(`users/${player.id}`);
 
-	assassinRef.update({
-		target: assassin.target
-	})
-	.then(() => {
-		playerRef.update({
-			target: player.target,
-			status: player.status
-		});
-	});
-
-	let gameRef = firebase.database().ref(`games/${player.gameId}`);
-	gameRef.once('value').then(snapshot => {
-		game = snapshot.val();
-
-		gameRef.update({
-			numLivePlayers: game.numLivePlayers - 1
-		});
+	playerRef.update({
+		status: player.status
 	});
 }
 
