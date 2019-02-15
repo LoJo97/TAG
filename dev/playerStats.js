@@ -130,7 +130,7 @@ function killTarget(assassinID){
 			oldTarget = player.target;
 		}else{ //Player is free agent, give options
 			modal = document.getElementById('chooseTargetModal');
-			span = document.getElementsByClassName('close')[0];
+			span = document.getElementById('closeModal');
 			dropdown = document.getElementById('targetSelect');
 
 			//Closing span functionality

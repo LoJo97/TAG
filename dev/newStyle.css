@@ -2,6 +2,10 @@
     box-sizing: border-box;
 }
 
+.hide{
+    display: none;
+}
+
 @media screen and (max-width: 1020px){
     .headerBar{
         overflow: hidden;
@@ -22,6 +26,7 @@
         float: left;
         width: 33.33333%;
         text-align: center;
+        font-size: 3em;
     }
 
     .userIcon{
@@ -33,7 +38,71 @@
     .headerIcon{
         padding-right: 20%;
         padding-left: 20%;
-        padding-top: 15%;
+        padding-top: 10%;
+        width: 80%;
+    }
+
+    .tabsBar{
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 10%;
+        bottom: 15%;
+    }
+
+    .tab{
+        width: 50%;
+        background-color: #0079cf;
+        border: none;
+        color: white;
+        padding: 2%;
+        text-align: center;
+        font-size: 3em;
+        cursor: pointer;
+        float: left;
+    }
+
+    .teal{
+        background-color: teal;
+    }
+
+    .stats{
+        position: absolute;
+        font-size: 3em;
+        top: 15%;
+        bottom: 100%;
+    }
+
+    .leftAnimate{
+        position:relative;
+        animation:animateleft 0.4s;
+    }
+
+    @keyframes animateleft{
+        from{
+                left: -300px;
+                opacity: 0;
+            } 
+        to{
+            left: 0;
+            opacity: 1;
+        }
+    }
+
+    .rightAnimate{
+        position: relative;
+        animation: animateright 0.4s;
+    }
+
+    @keyframes animateright{
+        from{
+                right: -300px;
+                opacity: 0;
+            } 
+        to{
+            right: 0;
+            opacity: 1;
+        }
     }
 
     .menuOverlay{
@@ -54,7 +123,7 @@
         left: 50%;
         -ms-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
-        font-size: 1.5em;
+        font-size: 5em;
         text-align: center;
         color: teal;
     }
@@ -70,18 +139,19 @@
     }
 
     .close {
-        color: #aaaaaa;
+        color: black;
         float: right;
         padding-right: 10%;
         padding-top: 4%;
-        font-size: 28px;
+        font-size: 5em;
         font-weight: bold;
     }
 
     .content{
+        position: absolute;
+        top: 10%;
         margin: 0;
         font-size: 3em;
-        height: 1500px;
         background-color: blue;
     }
 
@@ -93,9 +163,29 @@
     }
 
     .btn{
-        padding: 30px 50px;
+        background-color: #0079cf;
+        border: none;
+        color: white;
+        text-align: center;
         font-size: 2em;
-        margin: 4px;
+    }
+
+    .leftBtn{
+        width: 33.33333%;
+        float: left;
+    }
+
+    .rightBtn{
+        width: 33.33333%;
+        float: right;
+        background-color: gray;
+    }
+
+    .adminBtn{
+        position: relative;
+        top: 1em;
+        width: 100%;
+        background-color: navy;
     }
 
     table{
@@ -106,7 +196,30 @@
         font-size: 1em;
     }
 
-    .modal-content{
+    .userOverlay{
+        display: none;
+        position: fixed;
+        z-index: 1;
+        padding-top: 20%;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto; 
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .userOverlayContent{
         font-size: 2em;
+        background-color: #fefefe;
+        margin: auto;
+        padding: 15%;
+        border: 1px solid #888;
+        width: 90%;
+    }
+
+    #Right{
+        display: none;
     }
 }

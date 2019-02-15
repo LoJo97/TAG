@@ -13,12 +13,61 @@
 			</div>
 			<p class="pageName">New Format</p>
 			<div class="userIcon">
-				<img src="user.png" alt="user" class="headerIcon">
+				<img src="user.png" alt="user" id="user" class="headerIcon">
+			</div>
+		</div>
+
+		<div class="tabsBar loggedIn hide">
+			<button class="tab teal" onclick="switchTab(event, 'Left')">Current Game</button>
+			<button class="tab" onclick="switchTab(event, 'Right')">All Time</button>
+		</div>
+
+		<div id="Left" class="stats loggedIn hide">
+			<div class="leftAnimate">
+				<h3 id="kills"></h3>
+				<h3 id="status"></h3>
+				<h3 id="target"></h3>
+				<h3 id="counter"></h3>
+				<button class="btn" id="kill">Kill your target</button>
+			</div>
+		</div>
+
+		<div id="Right" class="stats loggedIn hide">
+			<div class="rightAnimate">
+				<h3 id="highScore">High Score: </h3>
+				<h3 id="totalKills">Total Kills: </h3>
+				<h3 id="gamesPlayed">Games Played: </h3>
+				<h3 id="gamesWon">Games Won: </h3>
+			</div>
+		</div>
+
+		<div id="userOverlay" class="userOverlay">
+			<span id="closeUser" class="close">&times;</span>
+			<div class="userOverlayContent loggedOut">
+				<h3>Log in</h3>
+				<form>
+					Email:<br>
+					<input class="inputbox" id="txtEmail" type="email"><br>
+					Password:<br>
+					<input class="inputbox" id="txtPassword" type="password"><br>
+				</form>
+				<button class="btn leftBtn" id="logIn">Log In</button>
+				<br>
+				<br>
+				<h3>OR create an account</h3>
+				<button class="btn" id="createAccount" style="background-color: gray" onclick="window.location.href='./signup.html'">Create Account</button>
+			</div>
+			<div class="userOverlayContent loggedIn hide">
+				<h3 id="username"></h3>
+				<br>
+				<button class="btn leftBtn" id="userPage">View Profile</button>
+				<button class="btn rightBtn" id="logOut">Log Out</button>
+				<button class="btn adminBtn hide" id="adminPage">Admin</button>
 			</div>
 		</div>
 
 		<div id="menuOverlay" class="menuOverlay">
-			<span class="close">&times;</span>
+			<span id="closeMenu" class="close">&times;</span>
 			<div class="menuContent">
 				<a href="./index.html">Home</a>
 				<br><br><br>
@@ -27,40 +76,10 @@
 				<a href="./joinGame.html">Join Game</a>
 			</div>
 		</div>
-
-		<div class="content">
-		</div>
 <!--
-
-		<div class="content hide" id="no-login">
-			Please log in to view your stats
-		</div>
-
-		<div class="content hide" id="login-content">
-			<h1><u id=nickname></u></h1>
-			<h3 id="name"></h3>
-			<h2><u>Current Game</u></h2>
-			<h3 id="kills"></h3>
-			<h3 id="status"></h3>
-			<h3 id="target"></h3>
-			<h3 id="counter"></h3>
-
-			<button class="btn hide" id="kill">Kill your target</button>
-
-			<div class="winner hide" id="win">
-				<h1><u><b>YOU WON!!!!!</b></u></h1>
-			</div>
-
-			<h2><u>All time</u></h2>
-			<h3 id="highScore">High Score: </h3>
-			<h3 id="totalKills">Total Kills: </h3>
-			<h3 id="gamesPlayed">Games Played: </h3>
-			<h3 id="gamesWon">Games Won: </h3>
-		</div>
-
 		<div id="chooseTargetModal" class="modal">
 			<div class="modal-content">
-				<span class="close">&times;</span>
+				<span class="closeModal">&times;</span>
 				<form>
 					<select name="targetSelect" id="targetSelect">
 					</select> <br>
@@ -75,5 +94,8 @@
 -->
 	</body>
 
+	<script src="https://www.gstatic.com/firebasejs/5.7.2/firebase.js"></script>
+	<script src="./config.js"></script>
+	<!--<script src="playerStats.js"></script>-->
 	<script src="pageFunctions.js"></script>
 </html>
