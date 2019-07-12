@@ -1,4 +1,4 @@
-# The Assassin Guild (T.A.G)
+# The Assassin Game (T.A.G)
 This React.js web application helps control an Assassin-style game called T.A.G. In this game, players are given another player as a target. It is then their objective to stealthily eliminate that player by an agreed upon means (such as squirting them with water). This website has the ability to create games, assign targets, along with many other features. Below is a basic walkthrough of the site and the technologies used to create it. If you're looking for the actual hosted website, the beta version is located [HERE](https://watertagtest.firebaseapp.com/)
 
 ## The Site
