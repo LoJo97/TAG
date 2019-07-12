@@ -1,0 +1,329 @@
+/* eslint-disable promise/no-nesting */
+/* eslint-disable promise/always-return */
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+const rp = require('request-promise-native');
+
+admin.initializeApp();
+
+exports.createBot = functions.database.ref('games/{gameId}')
+	.onCreate(snap => {
+		const cur = snap.val();
+		const gameRef = snap.ref;
+		let botId = '', groupName = '';
+
+		if(cur.includeBot){
+			const accessToken = cur.accessToken;
+			const groupId = cur.groupId;
+			
+			return rp.post(`https://api.groupme.com/v3/bots?token=${accessToken}`, {
+				json: {
+					bot: {
+						name: 'AIDA',
+						group_id: groupId
+					}
+				}
+			})
+			.then(res => {
+				if(res){
+					botId = res.response.bot.bot_id;
+					groupName = res.response.bot.group_name;
+				}
+			})
+			.catch(err => {
+				if(err){
+					console.log(err);
+				}
+			})
+			.then(() => {
+				return gameRef.update({
+					botId: botId,
+					groupName: groupName
+				})
+			})
+		}
+		return 0;
+	});
+
+exports.addPlayer = functions.database.ref('games/{gameId}/players/{pushId}')
+	.onCreate((snap, context) => {
+		let pid = snap.val().pID;
+
+		let gameRef = admin.database().ref(`games/${context.params.gameId}`);
+		let playerRef = admin.database().ref(`users/${pid}`);
+
+		return gameRef.once('value', gameSnap => {
+			return gameRef.update({numPlayers: gameSnap.val().numPlayers + 1})
+			.then(() => {
+				return playerRef.once('value', playerSnap => {
+					return playerRef.update({
+						inGame: true,
+						gameId: gameSnap.val().id,
+						gamesPlayed: playerSnap.val().gamesPlayed + 1,
+						status: true,
+						target: null,
+						kills: 0,
+						counter: 0,
+						freeAgent: false,
+						killSinceShuffle: false
+					});
+				});
+			});
+		});
+	});
+
+//Repair the targeting chain when a player is killed
+exports.repairChain = functions.database.ref('users/{userId}/status') //On status change
+	.onUpdate(change => {
+		let victimRef = change.after.ref.parent; //Get the ref to users/{userId}
+
+		return victimRef.once('value').then(snapshot => {
+			if(!change.after.val()){ //If target's status has been changed to dead
+				let victim = snapshot.val();
+				let victimId = victim.id; //Id of the victim
+				let target = victim.target; //Id of the victim's target
+
+				let usersRef = admin.database().ref('users');
+				let gameRef = admin.database().ref(`games/${victim.gameId}`);
+
+				let assassin;
+
+				return gameRef.once('value').then(game => {
+					return gameRef.update({ //Update the number of live players
+						numLivePlayers: game.val().numLivePlayers - 1
+					})
+					.then(() => {
+						return usersRef.orderByChild('target').equalTo(victimId).once('value')
+						.then(snap => {
+							//Store the assassin
+							snap.forEach(data => {
+								assassin = data.val();
+							});
+
+							//If assassin exists and victim has target, update target to victim's target
+							let assassinPromise = Promise.resolve(0);
+							if(assassin && target){ 
+								assassinPromise = admin.database().ref(`users/${assassin.id}`).update({
+									target: target
+								});
+							}
+
+							return assassinPromise.then(() => {
+								//Update kill log
+								let date = new Date();
+								return gameRef.child('killsToday').push({
+									month: date.getMonth(),
+									day: date.getDate(),
+									hour: date.getHours(),
+									minutes: date.getMinutes(),
+									victimId: victimId,
+									victimName: victim.name,
+									assassinId: assassin.id,
+									assassinName: assassin.name
+								})
+								.then(() => {
+									return victimRef.update({
+										target: null,
+										freeAgent: false
+									});
+								});
+							});
+						});
+					});
+				});
+			}
+			return 0;
+		});
+	});
+
+//Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
+exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
+.timeZone('America/Chicago')
+.onRun(context => {
+	let msg = '';
+	return admin.database().ref(`games`).orderByChild('isLive').equalTo(true).once('value').then(snap => {
+		let promiseArr = [];
+		snap.forEach(game => {
+			let gameData = game.val();
+			let logPromise = Promise.resolve(0);
+			//Construct a log of all fallen players for the day
+			if(gameData.killsToday){
+				msg = `Let us now honor today's fallen with a roast:\n`;
+				console.log(gameData);
+				console.log(gameData.killsToday);
+				for(key in gameData.killsToday){
+					msg += `${gameData.killsToday[key].victimName}\n`;
+				}
+				let log = gameData.killsToday;
+				logPromise = admin.database().ref(`games/${gameData.id}/killLog`).push({log}) //Archive the log
+				.catch(e => {
+					if(e) console.log(`Error in archiving log: ${e}`);
+				})
+				.then(() => {
+					return admin.database().ref(`games/${gameData.id}/killsToday`).remove()
+					.catch(e => {
+						if(e) console.log(`Error in deleting daily log: ${e}`);
+					})
+				});
+			}else{
+				msg = 'Guys, really? No kills today? Step it up!';
+			}
+			promiseArr[promiseArr.length] = logPromise.then(() => {
+				return sendMessage(gameData, msg);
+			});
+		});
+		return Promise.all(promiseArr)
+		.catch(e => {
+			if(e) console.log(`Error in sending messages: ${e}`);
+		});
+	})
+	.catch(e => {
+		if(e) console.log(`Error getting games: ${e}`);
+	});
+});
+
+//Check if the game should be ended when numLivePlayers is updated
+exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
+	.onUpdate(change => {
+		let snapshot = change.after;
+		let value = snapshot.val(); //Value of number of live players
+
+		let gameRef = snapshot.ref.parent;
+		let usersRef = admin.database().ref(`users`);
+
+		if(value <= 1){ //If the number of live players has dropped to a point at which the game should be ended
+			return gameRef.once('value').then(game => {
+				let gameData = game.val();
+
+				//If the game has a bot, send an ending message and then destroy it
+				let winnerPromise = Promise.resolve(0);
+				let botPromise;
+				
+				let msg = '';
+				if(value === 1 && gameData.isLive){
+					//Get the winner's name
+					winnerPromise = usersRef.orderByChild('gameId').equalTo(gameData.id).once('value')
+					.catch(e => {
+						if(e) console.log(`Error in fetching winner: ${e}`);
+					})
+					.then(snap => {
+						snap.forEach(player => { //Search the set of players for the last live player
+							if(player.val().status){ //If the player is alive, set the message to contain their name
+								msg = `We have a winner! ${player.val().name} is the victor in this game of Water Tag!`;
+							}
+						});
+						botPromise = sendAndDestroy(gameData, msg);
+					});
+				}else if(value === -1){
+					msg = 'Game ended by admin. Bye!';
+					botPromise = sendAndDestroy(gameData, msg);
+				}
+				
+				if(gameData.isLive || value === -1){
+					//Once the bot (if it exists) finishes doing it's thing, clean up the data
+					return winnerPromise.then(() => {
+						return botPromise
+						.then(() => {
+							//Update data for each player in the game
+							return usersRef.orderByChild('gameId').equalTo(gameData.id).once('value')
+							.catch(e => {
+								if(e) console.log(`Error in fetching player data: ${e}`);
+							})
+							.then(snap => {
+								let promiseList = [];
+								snap.forEach(data => {
+									player = data.val();
+									let playerRef = admin.database().ref(`users/${player.id}`);
+
+									let highScore = player.highScore;
+									let gamesWon = player.gamesWon;
+									//If player is alive and last standing (winner)
+									if(player.status === true && value === 1){ 
+										gamesWon++;
+										//If high score needs updated
+										if(player.kills > highScore) highScore = player.kills;
+									}
+
+									let promise = playerRef.update({
+										target: null,
+										kills: 0,
+										gamesWon: gamesWon,
+										highScore: highScore,
+										inGame: false,
+										gameId: null,
+										status: true,
+										counter: 0,
+										killSinceShuffle: false,
+										freeAgent: false
+									});
+									//Store the promise for later resolution
+									promiseList[promiseList.length] = promise;
+								});
+
+								return Promise.all(promiseList)
+								.catch(e => {
+									if(e) console.log(`Error updating player data: ${e}`);
+								})
+								.then(() => {
+									let adminRef = admin.database().ref(`users/${gameData.adminID}`);
+									return adminRef.update({
+										gameInChargeOf: null,
+										isAdmin: false
+									})
+									.catch(e => {
+										if(e) console.log(`Error updating admin data: ${e}`);
+									})
+									.then(() => {
+										return gameRef.remove()
+										.catch(e => {
+											if(e) console.log(`Error removing game: ${e}`);
+										});
+									});
+								});
+							});
+						});
+					});
+				}
+				return 1;
+			});
+		}
+		return 0;
+	});
+	
+/****************************************
+ * HELPER FUNCTIONS * 
+ ****************************************/
+
+const sendAndDestroy = (gameData, msg) => {
+	return sendMessage(gameData, msg)
+	.then(() => destroyBot(gameData));
+}
+
+const sendMessage = (gameData, msg) => {
+	if(gameData.includeBot){
+		return rp.post(`https://api.groupme.com/v3/bots/post?token=${gameData.accessToken}`, {
+			json: {
+				bot_id: gameData.botId,
+				text: msg
+			}
+		})
+		.catch(e => {
+			if(e) console.log(`Error in sending bot message: ${e}`);
+		});
+	}
+	return Promise.resolve(0);
+}
+
+const destroyBot = gameData => {
+	if(gameData.includeBot){
+		return rp.post(`https://api.groupme.com/v3/bots/destroy?token=${gameData.accessToken}`, {
+			json: {
+				bot_id: gameData.botId
+			}
+		})
+		.catch(e => {
+			if(e) console.log(`Error in deleting bot: ${e}`);
+		});
+	}
+	return Promise.resolve(0);
+}
