@@ -136,6 +136,34 @@ exports.repairChain = functions.database.ref('users/{userId}/status') //On statu
 		});
 	});
 
+//Automatically shuffles players in games whose nextShuffle counter has reached 0
+exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
+.timeZone('America/Chicago')
+.onRun(context => {
+	return admin.database().ref('games').once('value').then(snap => {
+		let promiseList = [];
+		snap.forEach(game => {
+			if(game.val().nextShuffle === 0 && game.val().numLivePlayers > 2){
+				promiseList[promiseList.length] = shuffle(game.val().freeAgents, game.val().id)
+				.then(() => {
+					return sendMessage(game.val(), 'Targets have been shuffled! May the odds be ever in your favor!');
+				});
+			}else{
+				promiseList[promiseList.length] = admin.database.ref(`games/${game.val().id}`).update({
+					nextShuffle: game.val().nextShuffle - 1
+				});
+			}
+		});
+		return promiseList.all()
+		.catch(e => {
+			console.log(`Error finishing shuffle: ${e}`);
+		});
+	})
+	.catch(e => {
+		console.log(`Error getting games: ${e}`);
+	});
+});
+
 //Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
 exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
 .timeZone('America/Chicago')
@@ -326,4 +354,64 @@ const destroyBot = gameData => {
 		});
 	}
 	return Promise.resolve(0);
+}
+
+//Does the heavy lifting for shuffling players
+const shuffle = (freeAgent, gameId) => {
+	let playerArr = [];
+
+	let playersRef = admin.database().ref('users').orderByChild('gameId').equalTo(gameId);
+	return playersRef.once('value').then(snap => {
+		let playerData = snap.val();
+
+		for(let playerID in playerData){
+			if(playerData[playerID].status){
+				playerArr[playerArr.length] = playerID;
+				if(!playerData[playerID].killSinceShuffle){
+					playerData[playerID].counter++;
+				}
+				playerData[playerID].killSinceShuffle = false;
+				playerData[playerID].freeAgent = false;
+			}
+		}
+
+		let numPlayers = playerArr.length;
+
+		//Set the free agent if requested
+		if(freeAgent){
+			let x = Math.floor(Math.random() * numPlayers);
+			let agent = playerArr.splice(x, 1);
+			playerData[agent].freeAgent = true;
+			playerData[agent].target = null;
+			numPlayers--;
+		}
+
+		let assassinArr = new Array(numPlayers);
+
+		for(let i = 0; i < numPlayers; i++){ //Randomly puts living players into a new array to shuffle them
+			let x = Math.floor(Math.random() * numPlayers);
+			//Hashing
+			if(assassinArr[x]){  
+				let j = (x + 1) % numPlayers;
+				while(assassinArr[j]){
+					j = (j + 1) % numPlayers;
+				}
+				assassinArr[j] = playerArr[i];
+			}else{
+				assassinArr[x] = playerArr[i];
+			}
+		}
+
+		for(let i = 0; i < numPlayers - 1; i++){
+			playerData[assassinArr[i]].target = assassinArr[i + 1];
+		}
+		playerData[assassinArr[numPlayers - 1]].target = assassinArr[0];
+		return admin.database().ref('users/').update(playerData)
+		.catch(e => {
+			console.log(`Error updating player data ${e}`);
+		});
+	})
+	.catch(e => {
+		console.log(`Error getting player data ${e}`);
+	});
 }
