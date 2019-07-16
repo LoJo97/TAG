@@ -6,6 +6,42 @@ const rp = require('request-promise-native');
 
 admin.initializeApp();
 
+/*********************
+ * ON-CALL FUNCTIONS
+ *********************/
+
+exports.shuffleNow = functions.https.onCall((data, context) => {
+	let status = 0;
+	const gameId = data.gameId;
+	let promise = admin.database().ref(`games/${gameId}`).once('value').then(snap => {
+		const freeAgent = snap.val().freeAgent;
+		return shuffle(freeAgent, gameId)
+		.catch(e => {
+			console.log(e);
+			status = 0;
+		})
+		.then(() => {
+			status = 1;
+			return sendMessage(snap.val(), 'Targets have been shuffled by the admin!');
+		});
+	})
+	.catch(e => {
+		return {
+			status: status,
+			error: e
+		}
+	})
+	.then(() => {
+		return {
+			status: status
+		}
+	});
+});
+
+/*********************************
+ * DATABASE TRIGGERED FUNCTIONS
+ *********************************/
+
 exports.createBot = functions.database.ref('games/{gameId}')
 	.onCreate(snap => {
 		const cur = snap.val();
@@ -136,80 +172,6 @@ exports.repairChain = functions.database.ref('users/{userId}/status') //On statu
 		});
 	});
 
-//Automatically shuffles players in games whose nextShuffle counter has reached 0
-exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
-.timeZone('America/Chicago')
-.onRun(context => {
-	return admin.database().ref('games').once('value').then(snap => {
-		let promiseList = [];
-		snap.forEach(game => {
-			if(game.val().nextShuffle === 0 && game.val().numLivePlayers > 2){
-				promiseList[promiseList.length] = shuffle(game.val().freeAgents, game.val().id)
-				.then(() => {
-					return sendMessage(game.val(), 'Targets have been shuffled! May the odds be ever in your favor!');
-				});
-			}else{
-				promiseList[promiseList.length] = admin.database.ref(`games/${game.val().id}`).update({
-					nextShuffle: game.val().nextShuffle - 1
-				});
-			}
-		});
-		return promiseList.all()
-		.catch(e => {
-			console.log(`Error finishing shuffle: ${e}`);
-		});
-	})
-	.catch(e => {
-		console.log(`Error getting games: ${e}`);
-	});
-});
-
-//Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
-exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
-.timeZone('America/Chicago')
-.onRun(context => {
-	let msg = '';
-	return admin.database().ref(`games`).orderByChild('isLive').equalTo(true).once('value').then(snap => {
-		let promiseArr = [];
-		snap.forEach(game => {
-			let gameData = game.val();
-			let logPromise = Promise.resolve(0);
-			//Construct a log of all fallen players for the day
-			if(gameData.killsToday){
-				msg = `Let us now honor today's fallen with a roast:\n`;
-				console.log(gameData);
-				console.log(gameData.killsToday);
-				for(key in gameData.killsToday){
-					msg += `${gameData.killsToday[key].victimName}\n`;
-				}
-				let log = gameData.killsToday;
-				logPromise = admin.database().ref(`games/${gameData.id}/killLog`).push({log}) //Archive the log
-				.catch(e => {
-					if(e) console.log(`Error in archiving log: ${e}`);
-				})
-				.then(() => {
-					return admin.database().ref(`games/${gameData.id}/killsToday`).remove()
-					.catch(e => {
-						if(e) console.log(`Error in deleting daily log: ${e}`);
-					})
-				});
-			}else{
-				msg = 'Guys, really? No kills today? Step it up!';
-			}
-			promiseArr[promiseArr.length] = logPromise.then(() => {
-				return sendMessage(gameData, msg);
-			});
-		});
-		return Promise.all(promiseArr)
-		.catch(e => {
-			if(e) console.log(`Error in sending messages: ${e}`);
-		});
-	})
-	.catch(e => {
-		if(e) console.log(`Error getting games: ${e}`);
-	});
-});
-
 //Check if the game should be ended when numLivePlayers is updated
 exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
 	.onUpdate(change => {
@@ -317,6 +279,84 @@ exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
 		}
 		return 0;
 	});
+
+/***********************
+ * SCHEDULED FUNCTIONS
+ ***********************/
+
+//Automatically shuffles players in games whose nextShuffle counter has reached 0
+exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
+.timeZone('America/Chicago')
+.onRun(context => {
+	return admin.database().ref('games').once('value').then(snap => {
+		let promiseList = [];
+		snap.forEach(game => {
+			if(game.val().nextShuffle === 0 && game.val().numLivePlayers > 2){
+				promiseList[promiseList.length] = shuffle(game.val().freeAgents, game.val().id)
+				.then(() => {
+					return sendMessage(game.val(), 'Targets have been shuffled! May the odds be ever in your favor!');
+				});
+			}else{
+				promiseList[promiseList.length] = admin.database().ref(`games/${game.val().id}`).update({
+					nextShuffle: game.val().nextShuffle - 1
+				});
+			}
+		});
+		return promiseList.all()
+		.catch(e => {
+			console.log(`Error finishing shuffle: ${e}`);
+		});
+	})
+	.catch(e => {
+		console.log(`Error getting games: ${e}`);
+	});
+});
+
+//Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
+exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
+.timeZone('America/Chicago')
+.onRun(context => {
+	let msg = '';
+	return admin.database().ref(`games`).orderByChild('isLive').equalTo(true).once('value').then(snap => {
+		let promiseArr = [];
+		snap.forEach(game => {
+			let gameData = game.val();
+			let logPromise = Promise.resolve(0);
+			//Construct a log of all fallen players for the day
+			if(gameData.killsToday){
+				msg = `Let us now honor today's fallen with a roast:\n`;
+				console.log(gameData);
+				console.log(gameData.killsToday);
+				for(key in gameData.killsToday){
+					msg += `${gameData.killsToday[key].victimName}\n`;
+				}
+				let log = gameData.killsToday;
+				logPromise = admin.database().ref(`games/${gameData.id}/killLog`).push({log}) //Archive the log
+				.catch(e => {
+					if(e) console.log(`Error in archiving log: ${e}`);
+				})
+				.then(() => {
+					return admin.database().ref(`games/${gameData.id}/killsToday`).remove()
+					.catch(e => {
+						if(e) console.log(`Error in deleting daily log: ${e}`);
+					})
+				});
+			}else{
+				msg = 'Guys, really? No kills today? Step it up!';
+			}
+			promiseArr[promiseArr.length] = logPromise.then(() => {
+				return sendMessage(gameData, msg);
+			});
+		});
+		return Promise.all(promiseArr)
+		.catch(e => {
+			if(e) console.log(`Error in sending messages: ${e}`);
+		});
+	})
+	.catch(e => {
+		if(e) console.log(`Error getting games: ${e}`);
+	});
+});
 	
 /****************************************
  * HELPER FUNCTIONS * 
@@ -409,6 +449,20 @@ const shuffle = (freeAgent, gameId) => {
 		return admin.database().ref('users/').update(playerData)
 		.catch(e => {
 			console.log(`Error updating player data ${e}`);
+		})
+		.then(() => {
+			let gameRef = admin.database().ref(`games/${gameId}`);
+			return gameRef.once('value').then(gameSnap => {
+				return gameRef.update({
+					nextShuffle: gameSnap.val().nextShuffleDefault
+				})
+				.catch(e => {
+					console.log(`Error updating shuffle timer: ${e}`);
+				});
+			})
+			.catch(e => {
+				console.log(`Error fetching game data: ${e}`);
+			});
 		});
 	})
 	.catch(e => {

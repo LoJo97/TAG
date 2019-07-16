@@ -89,7 +89,7 @@ class Stats extends Component{
     killTarget = () => {
         let assassinID = this.state.firebaseUser.uid;
         if(!this.state.freeAgent){
-            let targetRef = firebase.database().ref('users/' + this.state.targetId);
+            let targetRef = firebase.database().ref(`users/${this.state.targetId}`);
             let playerRef = firebase.database().ref(`users/${assassinID}`);
 
             let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');

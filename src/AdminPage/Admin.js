@@ -13,10 +13,13 @@ class Admin extends Component {
         isAdmin: null,
         //Game data
         gameId: null,
-        gameIsFinished: null,
         gameIsLive: null,
         numPlayers: 0,
         numLivePlayers: 0,
+        freeAgents: false,
+        nextShuffle: 0,
+        nextShuffleDefault: 0,
+        counterTolerance: 0,
         //Player data
         playerData: {},
         //Window data
@@ -24,12 +27,23 @@ class Admin extends Component {
         window: 'loading'
     }
 
+    style = { 
+        display: 'flex',
+        justifyContent:'center',
+        alignItems: 'center',
+        position: 'absolute',
+        textAlign: 'center',
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -30%)'
+    }
+    /*
     style = {
         position: 'absolute', left: '50%', top: '50%',
         transform: 'translate(-50%, -50%)',
         textAlign: 'center'
     }
-
+    */
     inputStyle = {
         padding: '10%',
         margin: '5%',
@@ -60,21 +74,23 @@ class Admin extends Component {
                 gameRef.once('value').then(snapshot => {
                     gameRef.update({
                         isLive: true,
-                        numLivePlayers: snapshot.val().numPlayers
+                        numLivePlayers: snapshot.val().numPlayers,
+                        nextShuffleDefault: this.state.nextShuffleDefault,
+                        nextShuffle: this.state.nextShuffleDefault,
+                        freeAgents: this.state.freeAgents
                     });
                 });
             }
         }
     }
 
-    //Removes user as admin and ends game
+    //Ends the game by setting the number of live players to -1, which triggers a cloud function
     end = () => {
         let c = window.confirm('Are you sure? Deleted games cannot be recovered.');
         if(c){
             let gameData = {
                 numLivePlayers: -1 //Triggers cloud function to end game/Doesn't award wins to living players
             }
-
             firebase.database().ref('games/' + this.state.gameId).update(gameData);
         }
     }
@@ -117,64 +133,41 @@ class Admin extends Component {
         }
     }
 
-    //Does the heavy lifting for shuffling players
-    shuffle = freeAgent => {
-        let playerArr = [];
-        let playerData = this.state.playerData;
-
-        for(let playerID in playerData){
-            if(playerData[playerID].status){
-                playerArr[playerArr.length] = playerID;
-                if(!playerData[playerID].killSinceShuffle){
-                    playerData[playerID].counter++;
-                }
-                playerData[playerID].killSinceShuffle = false;
-                playerData[playerID].freeAgent = false;
-            }
-        }
-
-        let numPlayers = playerArr.length;
-
-        //Set the free agent if requested
-        if(freeAgent){
-            let x = Math.floor(Math.random() * numPlayers);
-            let agent = playerArr.splice(x, 1);
-            playerData[agent].freeAgent = true;
-            playerData[agent].target = null;
-            numPlayers--;
-        }
-
-        let assassinArr = new Array(numPlayers);
-
-        for(let i = 0; i < numPlayers; i++){ //Randomly puts living players into a new array to shuffle them
-            let x = Math.floor(Math.random() * numPlayers);
-            //Hashing
-            if(assassinArr[x]){  
-                let j = (x + 1) % numPlayers;
-                while(assassinArr[j]){
-                    j = (j + 1) % numPlayers;
-                }
-                assassinArr[j] = playerArr[i];
-            }else{
-                assassinArr[x] = playerArr[i];
-            }
-        }
-
-        for(let i = 0; i < numPlayers - 1; i++){
-            playerData[assassinArr[i]].target = assassinArr[i + 1];
-        }
-        playerData[assassinArr[numPlayers - 1]].target = assassinArr[0];
-        this.setState({playerData: playerData});
-    }
+    //Shuffles players on the cloud, takes one arg: {gameId}
+    shuffle = firebase.functions().httpsCallable('shuffleNow');
 
     //Handles the shuffle function
     shuffleButton = () => {
-        let c1 = window.confirm("Are you sure?"); //Confirmation alert
-        if(c1){
-            let c2 = window.confirm("Do you want to add a free agent?");
-            this.shuffle(c2);
-            firebase.database().ref('users/').update(this.state.playerData);
+        this.shuffle({gameId: this.state.gameId})
+        .then(result => {
+            console.log(result);
+        });
+    }
+
+    submit = () => {
+        let c = window.confirm("Are you sure?");
+        if(c){
+            firebase.database().ref(`games/${this.state.gameId}`).update({
+                freeAgents: this.state.freeAgents,
+                nextShuffle: this.state.nextShuffle,
+                counterTolerance: this.state.counterTolerance
+            });
         }
+    }
+
+    handleInputChange = event => {
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+        let actualValue = value;
+
+        if(value && (name === 'nextShuffle' || name === 'nextShuffleDefault' || name === 'counterTolerance')){
+            actualValue = parseInt(value);
+        }
+
+        this.setState({
+            [name]: actualValue
+        });
     }
 
     //On mount, load in neccessary data from Firebase
@@ -198,10 +191,13 @@ class Admin extends Component {
                         let playersRef = firebase.database().ref('users').orderByChild('gameId').equalTo(this.state.gameId);
                         gameRef.on('value', gameSnap => { //Grab the game data
                             this.setState({
-                                gameIsFinished: gameSnap.val().isFinished,
                                 gameIsLive: gameSnap.val().isLive,
                                 numPlayers: gameSnap.val().numPlayers,
-                                numLivePlayers: gameSnap.val().numLivePlayers
+                                numLivePlayers: gameSnap.val().numLivePlayers,
+                                freeAgents: gameSnap.val().freeAgents,
+                                nextShuffleDefault: gameSnap.val().nextShuffleDefault,
+                                nextShuffle: gameSnap.val().nextShuffle,
+                                counterTolerance: gameSnap.val().counterTolerance
                             });
                             playersRef.on('value', playersSnap => { //Grab the player data
                                 this.setState({
@@ -228,6 +224,40 @@ class Admin extends Component {
         this.authListener = undefined;
      }
 
+    table = props => {
+        return(
+            <table style={this.tableStyle}>
+                <thead style={this.tableStyle}>
+                    <tr>
+                        <th>Name</th>
+                        <th>Target</th>
+                        <th>Counter</th>
+                    </tr>
+                </thead>
+                {
+                    this.state.playerData ?
+                    <tbody style={this.tableStyle}>
+                        {
+                        Object.keys(this.state.playerData).map(key => {
+                            return(
+                                <Player
+                                    key={this.state.playerData[key].id}
+                                    name={this.state.playerData[key].name}
+                                    target={this.state.playerData[key].target}
+                                    freeAgent={this.state.playerData[key].freeAgent}
+                                    counter={this.state.playerData[key].counter}
+                                />
+                            );
+                        })
+                        }
+                    </tbody>
+                    :
+                    <tbody style={this.tableStyle}></tbody>
+                }
+            </table>
+        );
+    }
+
     render(){
         return (
             this.state.window === 'loading' ?
@@ -235,58 +265,45 @@ class Admin extends Component {
             :
             this.state.window === 'admin' ?
             <div style={this.style}>
-                <h1>Game #{this.state.gameId}</h1>
                 {
-                this.state.gameIsFinished ?
-                <div>
-                    <p>Status: Finished</p>
-                    <button style={this.buttonStyle} onClick={this.end}>End Game</button>
-                </div>
-                :
                 !this.state.gameIsLive ?
                 <div>
+                    <h1>Game #{this.state.gameId}</h1>
                     <p>Status: Registration Phase</p>
+                    <input name='nextShuffleDefault' placeholder='Days between shuffles' style={this.inputStyle} onChange={this.handleInputChange}/>
+                    <input name='counterTolerance' placeholder='Counter Tolerance' style={this.inputStyle} onChange={this.handleInputChange}/>
+                    <label>
+                        Add Free Agent?
+                        <input name='freeAgent' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
+                    </label>
                     <button style={this.buttonStyle} onClick={this.start}>Begin Game</button>
                     <button style={this.buttonStyle} onClick={this.end}>End Game</button>
+                    {this.table()}
                 </div>
                 :
                 <div>
+                    <h1>Game #{this.state.gameId}</h1>
                     <p>Status: Ongoing</p>
+                    <label>
+                        Days Until Next Shuffle:
+                        <input name='nextShuffle' value={this.state.nextShuffle} style={this.inputStyle} onChange={this.handleInputChange}/>
+                    </label>
+                    <label>
+                        Counter Tolerance:
+                        <input name='counterTolerance' value={this.state.counterTolerance} style={this.inputStyle} onChange={this.handleInputChange}/>
+                    </label>
+                    <label>
+                        Add Free Agent?
+                        <input name='freeAgents' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
+                    </label>
+                    <button style={this.buttonStyle} onClick={this.submit}>Submit Changes</button>
                     <button style={this.buttonStyle} onClick={this.shuffleButton}>Shuffle</button>
                     <button style={this.buttonStyle} onClick={this.removeTargetsButton}>Remove Targets</button>
                     <button style={this.buttonStyle} onClick={this.killIdleButton}>Kill Idlers</button>
                     <button style={this.buttonStyle} onClick={this.end}>End Game</button>
+                    {this.table()}
                 </div>
                 }
-                <table style={this.tableStyle}>
-                    <thead style={this.tableStyle}>
-                        <tr>
-                            <th>Name</th>
-                            <th>Target</th>
-                            <th>Counter</th>
-                        </tr>
-                    </thead>
-                    {
-                        this.state.playerData ?
-                        <tbody style={this.tableStyle}>
-                            {
-                            Object.keys(this.state.playerData).map(key => {
-                                return(
-                                    <Player
-                                        key={this.state.playerData[key].id}
-                                        name={this.state.playerData[key].name}
-                                        target={this.state.playerData[key].target}
-                                        freeAgent={this.state.playerData[key].freeAgent}
-                                        counter={this.state.playerData[key].counter}
-                                    />
-                                );
-                            })
-                            }
-                        </tbody>
-                        :
-                        <tbody style={this.tableStyle}></tbody>
-                    }
-                </table>
             </div>
             :
             <Redirect push to='/'/>
