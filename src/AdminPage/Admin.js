@@ -35,15 +35,10 @@ class Admin extends Component {
         textAlign: 'center',
         left: '50%',
         top: '50%',
+        width: '10%',
         transform: 'translate(-50%, -30%)'
     }
-    /*
-    style = {
-        position: 'absolute', left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'center'
-    }
-    */
+
     inputStyle = {
         padding: '10%',
         margin: '5%',
@@ -63,6 +58,11 @@ class Admin extends Component {
         border: '1px solid white'
     }
 
+    tdStyle = {
+        textAlign: 'center',
+        border: '1px solid white'
+    }
+
     //Sets game status to live
     start = () => {
         let c = window.confirm('Are you sure?'); //Confirmation alert
@@ -70,6 +70,7 @@ class Admin extends Component {
             if(this.state.numPlayers < 2){
                 alert('You need at least two players for a good game of water tag');
             }else{
+                this.setState({window: 'loading'});
                 let gameRef = firebase.database().ref('games/' + this.state.gameId);
                 gameRef.once('value').then(snapshot => {
                     gameRef.update({
@@ -78,7 +79,8 @@ class Admin extends Component {
                         nextShuffleDefault: this.state.nextShuffleDefault,
                         nextShuffle: this.state.nextShuffleDefault,
                         freeAgents: this.state.freeAgents
-                    });
+                    })
+                    .then(() => this.setState({window: 'admin'}));
                 });
             }
         }
@@ -88,48 +90,43 @@ class Admin extends Component {
     end = () => {
         let c = window.confirm('Are you sure? Deleted games cannot be recovered.');
         if(c){
+            this.setState({window: 'loading'});
             let gameData = {
                 numLivePlayers: -1 //Triggers cloud function to end game/Doesn't award wins to living players
             }
-            firebase.database().ref('games/' + this.state.gameId).update(gameData);
+            firebase.database().ref('games/' + this.state.gameId).update(gameData)
+            .then(() => this.setState({window: 'admin'}));
         }
     }
 
-    //Removes targets from all players
-    removeTargets = () => {
-        let playerData = this.state.playerData;
-        for(let playerID in playerData){
-            playerData[playerID].target = null;
-            playerData[playerID].freeAgent = false;
-        }
-        this.setState({playerData: playerData});
-    }
+    //Removes targets on the cloud, takes one arg: {gameId}
+    removeTargets = firebase.functions().httpsCallable('removeTargetsNow');
 
     removeTargetsButton = () => {
         let c = window.confirm("Are you sure?");
         if(c){
-            this.removeTargets();
-            firebase.database().ref('users/').update(this.state.playerData);
+            this.setState({window: 'loading'});
+            this.removeTargets({gameId: this.state.gameId})
+            .then(result => {
+                console.log(result);
+                this.setState({window: 'admin'});
+            });
         }
-    }
-    
-    //Kills all players who haven't killed another player in an amount of shuffles equal to the standard
-    killIdlers = standard => {
-        let playerData = this.state.playerData;
-        for(let playerID in playerData){
-            if(playerData[playerID].counter >= standard){
-                playerData[playerID].status = false;
-                playerData[playerID].freeAgent = false;
-            }
-        }
-        this.setState({playerData: playerData});
     }
 
+    //Kills all players who haven't killed another player in an amount of shuffles equal to the standard
+    //on the cloud, takes one arg: {gameId}
+    killIdlers = firebase.functions().httpsCallable('killIdlersNow');
+
     killIdleButton = () => {
-        let standard = window.prompt("Enter the number of shuffles since last kill that should be tolerated: ", 3);
-        if(standard){
-            this.killIdlers(standard);
-            firebase.database().ref('users/').update(this.state.playerData);
+        let c = window.confirm("Are you sure?");
+        if(c){
+            this.setState({window: 'loading'});
+            this.killIdlers({gameId: this.state.gameId})
+            .then(result => {
+                console.log(result);
+                this.setState({window: 'admin'});
+            });
         }
     }
 
@@ -138,20 +135,27 @@ class Admin extends Component {
 
     //Handles the shuffle function
     shuffleButton = () => {
-        this.shuffle({gameId: this.state.gameId})
-        .then(result => {
-            console.log(result);
-        });
+        let c = window.confirm("Are you sure?");
+        if(c){
+            this.setState({window: 'loading'});
+            this.shuffle({gameId: this.state.gameId})
+            .then(result => {
+                console.log(result);
+                //this.setState({window: 'admin'});
+            });
+        }
     }
 
     submit = () => {
         let c = window.confirm("Are you sure?");
         if(c){
+            this.setState({window: 'loading'});
             firebase.database().ref(`games/${this.state.gameId}`).update({
                 freeAgents: this.state.freeAgents,
                 nextShuffle: this.state.nextShuffle,
                 counterTolerance: this.state.counterTolerance
-            });
+            })
+            .then(() => this.setState({window: 'admin'}));
         }
     }
 
@@ -224,14 +228,14 @@ class Admin extends Component {
         this.authListener = undefined;
      }
 
-    table = props => {
+    table = () => {
         return(
             <table style={this.tableStyle}>
                 <thead style={this.tableStyle}>
                     <tr>
-                        <th>Name</th>
-                        <th>Target</th>
-                        <th>Counter</th>
+                        <th style={this.tdStyle}>Name</th>
+                        <th style={this.tdStyle}>Target</th>
+                        <th style={this.tdStyle}>Counter</th>
                     </tr>
                 </thead>
                 {

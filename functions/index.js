@@ -7,7 +7,7 @@ const rp = require('request-promise-native');
 admin.initializeApp();
 
 /*********************
- * ON-CALL FUNCTIONS
+ * ON-CALL FUNCTIONS *
  *********************/
 
 exports.shuffleNow = functions.https.onCall((data, context) => {
@@ -26,21 +26,70 @@ exports.shuffleNow = functions.https.onCall((data, context) => {
 		});
 	})
 	.catch(e => {
+		status = 0
 		return {
 			status: status,
 			error: e
 		}
 	})
 	.then(() => {
+		status = 1;
 		return {
 			status: status
 		}
 	});
 });
 
-/*********************************
- * DATABASE TRIGGERED FUNCTIONS
- *********************************/
+exports.removeTargetsNow = functions.https.onCall((data, context) => {
+	const gameId = data.gameId;
+	return removeTargets(gameId)
+	.catch(e => {
+		console.log(e);
+		return {
+			status: 0,
+			error: e
+		}
+	})
+	.then(() => {
+		return {
+			status: 1
+		}
+	});
+});
+
+exports.killIdlersNow = functions.https.onCall((data, context) => {
+	let status = 0;
+	const gameId = data.gameId;
+	let promise = admin.database().ref(`games/${gameId}`).once('value').then(snap => {
+		const standard = snap.val().counterTolerance;
+		return killIdlers(gameId, standard)
+		.catch(e => {
+			status = 0;
+			console.log(`Error killing idlers: ${e}`);
+		})
+		.then(() => {
+			status = 1;
+			return sendMessage(snap.val(), `Players with a counter greater than or equal to ${standard} have been eliminated`);
+		});
+	})
+	.catch(e => {
+		status = 0;
+		return {
+			status: status,
+			error: e
+		}
+	})
+	.then(() => {
+		status = 1;
+		return {
+			status: status
+		}
+	});
+});
+
+/********************************
+ * DATABASE TRIGGERED FUNCTIONS *
+ ********************************/
 
 exports.createBot = functions.database.ref('games/{gameId}')
 	.onCreate(snap => {
@@ -281,7 +330,7 @@ exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
 	});
 
 /***********************
- * SCHEDULED FUNCTIONS
+ * SCHEDULED FUNCTIONS *
  ***********************/
 
 //Automatically shuffles players in games whose nextShuffle counter has reached 0
@@ -358,9 +407,9 @@ exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
 	});
 });
 	
-/****************************************
+/********************
  * HELPER FUNCTIONS * 
- ****************************************/
+ ********************/
 
 const sendAndDestroy = (gameData, msg) => {
 	return sendMessage(gameData, msg)
@@ -394,6 +443,44 @@ const destroyBot = gameData => {
 		});
 	}
 	return Promise.resolve(0);
+}
+
+const removeTargets = gameId => {
+	let playersRef = admin.database().ref('users').orderByChild('gameId').equalTo(gameId);
+	return playersRef.once('value').then(snap => {
+		let playerData = snap.val();
+		for(let playerID in playerData){
+            playerData[playerID].target = null;
+            playerData[playerID].freeAgent = false;
+		}
+		return playersRef.update(playerData)
+		.catch(e => {
+			console.log(`Error updating player data: ${e}`);
+		});
+	})
+	.catch(e => {
+		console.log(`Error fetching player data: ${e}`);
+	});
+}
+
+const killIdlers = (gameId, standard) => {
+	let playersRef = admin.database().ref('users').orderByChild('gameId').equalTo(gameId);
+	return playersRef.once('value').then(snap => {
+		let playerData = snap.val();
+		for(let playerID in playerData){
+            if(playerData[playerID].counter >= standard){
+                playerData[playerID].status = false;
+                playerData[playerID].freeAgent = false;
+            }
+		}
+		return playerRef.update(playerData)
+		.catch(e => {
+			console.log(`Error updating player data: ${e}`);
+		});
+	})
+	.catch(e => {
+		console.log(`Error fetching player data: ${e}`);
+	});
 }
 
 //Does the heavy lifting for shuffling players

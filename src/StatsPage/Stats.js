@@ -28,12 +28,18 @@ class Stats extends Component{
         freeAgent: null
     }
 
-    style = {
-        position: 'absolute', left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'center'
+    style = { 
+        display: 'flex',
+        justifyContent:'center',
+        alignItems: 'center',
+        position: 'absolute',
+        textAlign: 'center',
+        left: '50%',
+        top: '50%',
+        width: '10%',
+        transform: 'translate(-50%, -50%)'
     }
-
+    
     inputStyle = {
         padding: '10%',
         margin: '5%',
@@ -166,6 +172,7 @@ class Stats extends Component{
                     :
                     this.state.window === 'stats' ?
                     <div style={this.style}>
+                        <div>
                         <h1><u>Stats</u></h1>
                         <p>Name: {this.state.name}</p>
                         <p>Alias: {this.state.displayName}</p>
@@ -208,6 +215,7 @@ class Stats extends Component{
                         <p>Games Played: {this.state.gamesPlayed}</p>
                         <p>Games Won: {this.state.gamesWon}</p>
                         <button style={this.buttonStyle} onClick={this.logout}>Sign out</button>
+                    </div>
                     </div>
                     :
                     <Redirect push to='/Login'/>
