@@ -1,9 +1,19 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 import * as firebase from 'firebase';
 
 let tdStyle = {
     textAlign: 'center',
-    border: '1px solid white'
+    border: '2px solid white',
+    textDecoration: 'none'
+}
+
+let linkStyle = {
+    textDecoration: 'none',
+    display: 'inline-block',
+    height: '100%',
+    width: '100%',
+    color: 'white'
 }
 
 const player = props => {
@@ -20,9 +30,21 @@ const player = props => {
 
     return(
         <tr>
-            <td style={tdStyle}>{props.name}</td>
-            <td style={tdStyle}>{targetName}</td>
-            <td style={tdStyle}>{props.counter}</td>
+            <td style={tdStyle}>
+                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                    {props.name}
+                </Link>
+            </td>
+            <td style={tdStyle}>
+                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                    {targetName}
+                </Link>
+            </td>
+            <td style={tdStyle}>
+                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                    {props.counter}
+                </Link>
+            </td>
         </tr>
     );
 }

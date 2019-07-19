@@ -4,6 +4,7 @@ import {Redirect} from 'react-router-dom';
 import Player from './Player';
 import Loading from '../LoadingPage/Loading'
 import {app} from '../config';
+import { genericTypeAnnotation } from '@babel/types';
 
 class Admin extends Component {
     state = {
@@ -34,16 +35,15 @@ class Admin extends Component {
         position: 'absolute',
         textAlign: 'center',
         left: '50%',
-        top: '50%',
-        width: '10%',
-        transform: 'translate(-50%, -30%)'
+        width: '50%',
+        transform: 'translate(-50%, 0%)'
     }
 
     inputStyle = {
-        padding: '10%',
+        padding: '5%',
         margin: '5%',
         display: 'inline block',
-        width: '75%'
+        width: '10%'
     }
 
     buttonStyle = {
@@ -54,13 +54,12 @@ class Admin extends Component {
         border: 'none'
     }
 
-    tableStyle = {
-        border: '1px solid white'
-    }
-
-    tdStyle = {
-        textAlign: 'center',
-        border: '1px solid white'
+    endButtonStyle = {
+        margin: '5%',
+        padding: '10%',
+        backgroundColor: 'rgb(155, 0, 0)',
+        color: 'white',
+        border: 'none'
     }
 
     //Sets game status to live
@@ -230,33 +229,34 @@ class Admin extends Component {
 
     table = () => {
         return(
-            <table style={this.tableStyle}>
-                <thead style={this.tableStyle}>
+            <table>
+                <thead>
                     <tr>
-                        <th style={this.tdStyle}>Name</th>
-                        <th style={this.tdStyle}>Target</th>
-                        <th style={this.tdStyle}>Counter</th>
+                        <th>Name</th>
+                        <th>Target</th>
+                        <th>Count</th>
                     </tr>
                 </thead>
                 {
                     this.state.playerData ?
-                    <tbody style={this.tableStyle}>
+                    <tbody>
                         {
-                        Object.keys(this.state.playerData).map(key => {
+                        Object.keys(this.state.playerData).map(index => {
                             return(
-                                <Player
-                                    key={this.state.playerData[key].id}
-                                    name={this.state.playerData[key].name}
-                                    target={this.state.playerData[key].target}
-                                    freeAgent={this.state.playerData[key].freeAgent}
-                                    counter={this.state.playerData[key].counter}
+                                <Player 
+                                    key={this.state.playerData[index].id}
+                                    id={this.state.playerData[index].id}
+                                    name={this.state.playerData[index].name}
+                                    target={this.state.playerData[index].target}
+                                    freeAgent={this.state.playerData[index].freeAgent}
+                                    counter={this.state.playerData[index].counter}
                                 />
                             );
                         })
                         }
                     </tbody>
                     :
-                    <tbody style={this.tableStyle}></tbody>
+                    <tbody></tbody>
                 }
             </table>
         );
@@ -267,45 +267,51 @@ class Admin extends Component {
             this.state.window === 'loading' ?
             <Loading/>
             :
+            this.state.window === 'PlayerView' ?
+            <Redirect push to={`/PlayerView/${this.state.playerToView}`}/>
+            :
             this.state.window === 'admin' ?
             <div style={this.style}>
                 {
                 !this.state.gameIsLive ?
                 <div>
                     <h1>Game #{this.state.gameId}</h1>
-                    <p>Status: Registration Phase</p>
-                    <input name='nextShuffleDefault' placeholder='Days between shuffles' style={this.inputStyle} onChange={this.handleInputChange}/>
-                    <input name='counterTolerance' placeholder='Counter Tolerance' style={this.inputStyle} onChange={this.handleInputChange}/>
+                    <h3 style={{backgroundColor: 'red'}}>Status: Registration Phase</h3>
+                    <input name='nextShuffleDefault' placeholder='Days between shuffles' style={this.inputStyle} onChange={this.handleInputChange}/><br/>
+                    <input name='counterTolerance' placeholder='Counter Tolerance' style={this.inputStyle} onChange={this.handleInputChange}/><br/>
                     <label>
                         Add Free Agent?
                         <input name='freeAgent' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
-                    </label>
+                    </label><br/>
                     <button style={this.buttonStyle} onClick={this.start}>Begin Game</button>
-                    <button style={this.buttonStyle} onClick={this.end}>End Game</button>
                     {this.table()}
+                    <button style={this.buttonStyle} onClick={this.end}>End Game</button>
                 </div>
                 :
                 <div>
                     <h1>Game #{this.state.gameId}</h1>
-                    <p>Status: Ongoing</p>
+                    <h3 style={{backgroundColor: 'green'}}>Status: Ongoing</h3>
                     <label>
-                        Days Until Next Shuffle:
+                        Days Until Next Shuffle: <br/>
                         <input name='nextShuffle' value={this.state.nextShuffle} style={this.inputStyle} onChange={this.handleInputChange}/>
                     </label>
+                    <br/>
                     <label>
-                        Counter Tolerance:
+                        Counter Tolerance: <br/>
                         <input name='counterTolerance' value={this.state.counterTolerance} style={this.inputStyle} onChange={this.handleInputChange}/>
                     </label>
+                    <br/>
                     <label>
                         Add Free Agent?
                         <input name='freeAgents' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
                     </label>
-                    <button style={this.buttonStyle} onClick={this.submit}>Submit Changes</button>
-                    <button style={this.buttonStyle} onClick={this.shuffleButton}>Shuffle</button>
-                    <button style={this.buttonStyle} onClick={this.removeTargetsButton}>Remove Targets</button>
-                    <button style={this.buttonStyle} onClick={this.killIdleButton}>Kill Idlers</button>
-                    <button style={this.buttonStyle} onClick={this.end}>End Game</button>
+                    <br/>
+                    <button style={this.buttonStyle} onClick={this.submit}>Submit Changes</button><br/>
+                    <button style={this.buttonStyle} onClick={this.shuffleButton}>Shuffle</button><br/>
+                    <button style={this.buttonStyle} onClick={this.removeTargetsButton}>Remove Targets</button><br/>
+                    <button style={this.buttonStyle} onClick={this.killIdleButton}>Kill Idlers</button><br/>
                     {this.table()}
+                    <button style={this.endButtonStyle} onClick={this.end}>End Game</button><br/>
                 </div>
                 }
             </div>

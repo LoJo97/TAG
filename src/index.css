@@ -5,3 +5,30 @@ body {
   background-color: #303030;
   color: white;
 }
+
+table {
+  border: 1px solid white;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  text-align: center;
+  border: 2px solid white;
+}
+
+tr:nth-child(even){
+  background-color: #666060;
+}
+
+tr:hover{
+  background-color: rgb(40, 137, 182);
+}
+
+th {
+  text-align: left;
+  background-color: rgb(40, 40, 161);
+  color: white;
+}
