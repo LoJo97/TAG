@@ -14,7 +14,7 @@ exports.shuffleNow = functions.https.onCall((data, context) => {
 	let status = 0;
 	const gameId = data.gameId;
 	let promise = admin.database().ref(`games/${gameId}`).once('value').then(snap => {
-		const freeAgent = snap.val().freeAgent;
+		const freeAgent = snap.val().freeAgents;
 		return shuffle(freeAgent, gameId)
 		.catch(e => {
 			console.log(e);

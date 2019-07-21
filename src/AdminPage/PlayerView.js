@@ -3,19 +3,31 @@ import * as firebase from 'firebase';
 
 class PlayerView extends Component{
     state = {
-        id: null
-        //kills, counter, name, displayName, killSinceShuffle, status
     }
 
-    componentDidMount(){
-        const {id} = this.props.match.params;
-        this.setState({id: id});
-        console.log(id);
+    style = { 
+        display: 'flex',
+        justifyContent:'center',
+        alignItems: 'center',
+        position: 'absolute',
+        textAlign: 'center',
+        left: '50%',
+        width: '50%',
+        transform: 'translate(-50%, -0%)'
     }
 
     render(){
         return(
-            <p>Working: {this.state.id}</p>
+            <div style={this.style}>
+                <div>
+                    <h1><u>{this.props.location.state.name}</u></h1>
+                    <p>Kills: {this.props.location.state.kills}</p>
+                    <p>Status: {this.props.location.state.status ? 'Alive' : 'Slain'}</p>
+                    <p>Target: {this.props.location.state.targetName}</p>
+                    <p>Counter: {this.props.location.state.counter}</p>
+                    <p>Kill since last shuffle? {this.props.location.state.killSinceShuffle ? 'Yes' : 'No'}</p>
+                </div>
+            </div>
         );
     }
 }

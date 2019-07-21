@@ -4,7 +4,6 @@ import {Redirect} from 'react-router-dom';
 import Player from './Player';
 import Loading from '../LoadingPage/Loading'
 import {app} from '../config';
-import { genericTypeAnnotation } from '@babel/types';
 
 class Admin extends Component {
     state = {
@@ -245,11 +244,15 @@ class Admin extends Component {
                             return(
                                 <Player 
                                     key={this.state.playerData[index].id}
-                                    id={this.state.playerData[index].id}
-                                    name={this.state.playerData[index].name}
-                                    target={this.state.playerData[index].target}
-                                    freeAgent={this.state.playerData[index].freeAgent}
                                     counter={this.state.playerData[index].counter}
+                                    freeAgent={this.state.playerData[index].freeAgent}
+                                    id={this.state.playerData[index].id}
+                                    killSinceShuffle={this.state.playerData[index].killSinceShuffle}
+                                    kills={this.state.playerData[index].kills}
+                                    name={this.state.playerData[index].name}
+                                    status={this.state.playerData[index].status}
+                                    target={this.state.playerData[index].target}
+                                    targetName={this.state.playerData[this.state.playerData[index].target].name}
                                 />
                             );
                         })

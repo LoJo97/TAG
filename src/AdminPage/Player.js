@@ -31,17 +31,17 @@ const player = props => {
     return(
         <tr>
             <td style={tdStyle}>
-                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                <Link to={{pathname: `/PlayerView/${props.id}`, state: props}} style={linkStyle}>
                     {props.name}
                 </Link>
             </td>
             <td style={tdStyle}>
-                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                <Link to={{pathname: `/PlayerView/${props.id}`, state: props}} style={linkStyle}>
                     {targetName}
                 </Link>
             </td>
             <td style={tdStyle}>
-                <Link to={`/PlayerView/${props.id}`} style={linkStyle}>
+                <Link to={{pathname: `/PlayerView/${props.id}`, state: props}} style={linkStyle}>
                     {props.counter}
                 </Link>
             </td>
