@@ -252,7 +252,7 @@ class Admin extends Component {
                                     name={this.state.playerData[index].name}
                                     status={this.state.playerData[index].status}
                                     target={this.state.playerData[index].target}
-                                    targetName={this.state.playerData[this.state.playerData[index].target].name}
+                                    //targetName={this.state.playerData[this.state.playerData[index].target].name}
                                 />
                             );
                         })
