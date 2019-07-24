@@ -9,7 +9,9 @@ class PlayerView extends Component{
         targetName: null,
         counter: 0,
         killSinceShuffle: false,
-        showButtons: true
+        showButtons: true,
+        statusColor: 'green',
+        killColor: 'green'
     }
 
     style = { 
@@ -38,12 +40,51 @@ class PlayerView extends Component{
         border: 'none'
     }
 
+    toggleStatus = () => {
+        let statusColor = 'green';
+
+        if(this.state.status){
+            statusColor = 'rgb(155, 0, 0)';
+        }
+
+        this.setState({
+            status: !this.state.status,
+            statusColor: statusColor
+        });
+    }
+
+    toggleKill = () => {
+        let newKillColor = 'green';
+        
+        if(this.state.killSinceShuffle){
+            newKillColor = 'rgb(155, 0, 0)';
+        }
+
+        this.setState({
+            killSinceShuffle: !this.state.killSinceShuffle,
+            killColor: newKillColor
+        });
+    }
+
     reset = () => {
+        let statusColor = 'green';
+        let killColor = 'green';
+
+        if(!this.state.dataSave.status){
+            statusColor = 'rgb(155, 0, 0)';
+        }
+
+        if(!this.state.dataSave.killSinceShuffle){
+            killColor = 'rgb(155, 0, 0)';
+        }
+
         this.setState({
             kills: this.state.dataSave.kills,
             status: this.state.dataSave.status,
             counter: this.state.dataSave.counter,
-            killSinceShuffle: this.state.dataSave.killSinceShuffle
+            killSinceShuffle: this.state.dataSave.killSinceShuffle,
+            statusColor: statusColor,
+            killColor: killColor
         });
     }
 
@@ -84,6 +125,17 @@ class PlayerView extends Component{
     }
 
     componentDidMount() {
+        let statusColor = 'green';
+        let killColor = 'green';
+
+        if(!this.props.location.state.status){
+            statusColor = 'rgb(155, 0, 0)';
+        }
+
+        if(!this.props.location.state.killSinceShuffle){
+            killColor = 'rgb(155, 0, 0)';
+        }
+
         this.setState({
             dataSave: {
                 kills: this.props.location.kills,
@@ -96,11 +148,29 @@ class PlayerView extends Component{
             status: this.props.location.state.status,
             targetName: this.props.location.state.targetName,
             counter: this.props.location.state.counter,
-            killSinceShuffle: this.props.location.state.killSinceShuffle
+            killSinceShuffle: this.props.location.state.killSinceShuffle,
+            killColor: killColor,
+            statusColor: statusColor
         });
     }
 
     render(){
+        let statusButtonStyle = {
+            margin: '5%',
+            padding: '5%',
+            color: 'white',
+            border: 'none',
+            backgroundColor: this.state.statusColor
+        }
+    
+        let killButtonStyle = {
+            margin: '5%',
+            padding: '5%',
+            color: 'white',
+            border: 'none',
+            backgroundColor: this.state.killColor
+        }
+
         return(
             <div style={this.style}>
                 <div>
@@ -109,13 +179,21 @@ class PlayerView extends Component{
                         Kills:
                         <input name='kills' value={this.state.kills} style={this.inputStyle} onChange={this.handleInputChange}/>
                     </label><br/>
-                    <p>Status: {this.props.location.state.status ? 'Alive' : 'Slain'}</p>
-                    <p>Target: {this.props.location.state.targetName}</p>
+                    <p>Status:
+                        <button style={statusButtonStyle} onClick={this.toggleStatus}>
+                            {this.state.status ? 'Alive' : 'Slain'}
+                        </button>
+                    </p>
+                    <p>Target: {this.state.targetName}</p>
                     <label>
                         Counter:
                         <input name='counter' value={this.state.counter} style={this.inputStyle} onChange={this.handleInputChange}/>
                     </label><br/>
-                    <p>Kill since last shuffle? {this.props.location.state.killSinceShuffle ? 'Yes' : 'No'}</p>
+                    <p>Kill this round?
+                        <button style={killButtonStyle} onClick={this.toggleKill}>
+                            {this.state.killSinceShuffle ? 'Yes' : 'No'}
+                        </button>
+                    </p>
                     <button style={this.buttonStyle} onClick={this.submit}>Save Changes</button><br/>
                     <button style={this.buttonStyle} onClick={this.reset}>Reset</button>
                 </div>

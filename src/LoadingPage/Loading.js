@@ -5,7 +5,7 @@ class Loading extends Component {
     render(){
         return(
             <div className='loading'>
-                <img src={water_bottle} className='img' alt='Water Bottle' />
+                <img src={water_bottle} className='img' alt='Water Bottle'/>
                 <p>Loading...</p>
             </div>
         );
