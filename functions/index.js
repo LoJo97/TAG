@@ -13,7 +13,7 @@ admin.initializeApp();
 exports.shuffleNow = functions.https.onCall((data, context) => {
 	let status = 0;
 	const gameId = data.gameId;
-	let promise = admin.database().ref(`games/${gameId}`).once('value').then(snap => {
+	return admin.database().ref(`games/${gameId}`).once('value').then(snap => {
 		const freeAgent = snap.val().freeAgents;
 		return shuffle(freeAgent, gameId)
 		.catch(e => {
@@ -60,7 +60,7 @@ exports.removeTargetsNow = functions.https.onCall((data, context) => {
 exports.killIdlersNow = functions.https.onCall((data, context) => {
 	let status = 0;
 	const gameId = data.gameId;
-	let promise = admin.database().ref(`games/${gameId}`).once('value').then(snap => {
+	return admin.database().ref(`games/${gameId}`).once('value').then(snap => {
 		const standard = snap.val().counterTolerance;
 		return killIdlers(gameId, standard)
 		.catch(e => {
@@ -341,10 +341,16 @@ exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
 		let promiseList = [];
 		snap.forEach(game => {
 			if(game.val().nextShuffle === 0 && game.val().numLivePlayers > 2){
-				promiseList[promiseList.length] = shuffle(game.val().freeAgents, game.val().id)
+				promiseList[promiseList.length] = removeTargets(game.val().id) //Remove targets from all players in game
 				.then(() => {
-					return sendMessage(game.val(), 'Targets have been shuffled! May the odds be ever in your favor!');
-				});
+					return killIdlers(game.val().id, game.val().counter) //Kill all players who haven't gotten a kill in the specified number of shuffles
+					.then(() => {
+						return shuffle(game.val().freeAgents, game.val().id) //Assign new targets
+						.then(() => {
+							return sendMessage(game.val(), 'Targets have been shuffled! May the odds be ever in your favor!'); //Send a message to GroupMe announcing the shuffle
+						});
+					});
+				});	
 			}else{
 				promiseList[promiseList.length] = admin.database().ref(`games/${game.val().id}`).update({
 					nextShuffle: game.val().nextShuffle - 1
@@ -453,7 +459,7 @@ const removeTargets = gameId => {
             playerData[playerID].target = null;
             playerData[playerID].freeAgent = false;
 		}
-		return playersRef.update(playerData)
+		return admin.database().ref('users').update(playerData)
 		.catch(e => {
 			console.log(`Error updating player data: ${e}`);
 		});
@@ -473,7 +479,7 @@ const killIdlers = (gameId, standard) => {
                 playerData[playerID].freeAgent = false;
             }
 		}
-		return playerRef.update(playerData)
+		return admin.database().ref('users').update(playerData)
 		.catch(e => {
 			console.log(`Error updating player data: ${e}`);
 		});

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import * as firebase from 'firebase';
 import {Redirect} from 'react-router-dom';
 import Player from './Player';
-import Loading from '../LoadingPage/Loading'
+import Loading from '../LoadingPage/Loading';
 import {app} from '../config';
 
 class Admin extends Component {

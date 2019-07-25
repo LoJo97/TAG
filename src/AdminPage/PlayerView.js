@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
+import Loading from '../LoadingPage/Loading';
 import * as firebase from 'firebase';
 
 class PlayerView extends Component{
     state = {
         dataSave: {},
+        freeAgent: false,
         kills: 0,
         status: true,
         targetName: null,
@@ -11,7 +13,8 @@ class PlayerView extends Component{
         killSinceShuffle: false,
         showButtons: true,
         statusColor: 'green',
-        killColor: 'green'
+        killColor: 'green',
+        window: 'loading'
     }
 
     style = { 
@@ -89,21 +92,22 @@ class PlayerView extends Component{
     }
 
     submit = () => {
-        this.setState({
-            dataSave: {
-                kills: this.state.kills,
-                status: this.state.status,
-                counter: this.state.counter,
-                killSinceShuffle: this.state.killSinceShuffle
-            }
-        });
-
         firebase.database().ref(`users/${this.state.id}`).update({
             kills: this.state.kills,
             status: this.state.status,
             counter: this.state.counter,
             killSinceShuffle: this.state.killSinceShuffle
-        });
+        })
+        .then(() => {
+            if((this.state.dataSave.kills !== this.state.kills) ||
+                (this.state.dataSave.status !== this.state.status) ||
+                (this.state.dataSave.counter !== this.state.counter) ||
+                (this.state.dataSave.killSinceShuffle !== this.state.killSinceShuffle)){
+                    this.setState({
+                        window: 'loading'
+                    });
+                }
+        });        
     }
     
     handleInputChange = event => {
@@ -125,33 +129,43 @@ class PlayerView extends Component{
     }
 
     componentDidMount() {
-        let statusColor = 'green';
-        let killColor = 'green';
+        let playerId = this.props.match.params.id;
+        this.ref = firebase.database().ref(`users/${playerId}`)
+        this.ref.on('value', snap => {
+            let playerData = snap.val();
 
-        if(!this.props.location.state.status){
-            statusColor = 'rgb(155, 0, 0)';
-        }
+            let targetName;
+            firebase.database().ref(`users/${playerData.target}/name`).once('value')
+            .then(targetSnap => {
+                targetName = targetSnap.val();
+                let statusColor = playerData.status ? 'green' : 'rgb(155, 0, 0)';
+                let killColor = playerData.killSinceShuffle ? 'green' : 'rgb(155, 0, 0)';
 
-        if(!this.props.location.state.killSinceShuffle){
-            killColor = 'rgb(155, 0, 0)';
-        }
-
-        this.setState({
-            dataSave: {
-                kills: this.props.location.kills,
-                status: this.props.location.state.status,
-                counter: this.props.location.state.counter,
-                killSinceShuffle: this.props.location.state.killSinceShuffle
-            },
-            id: this.props.location.state.id,
-            kills: this.props.location.kills,
-            status: this.props.location.state.status,
-            targetName: this.props.location.state.targetName,
-            counter: this.props.location.state.counter,
-            killSinceShuffle: this.props.location.state.killSinceShuffle,
-            killColor: killColor,
-            statusColor: statusColor
+                this.setState({
+                    dataSave: {
+                        kills: playerData.kills,
+                        status: playerData.status,
+                        counter: playerData.counter,
+                        killSinceShuffle: playerData.killSinceShuffle
+                    },
+                    freeAgent: playerData.freeAgent,
+                    id: playerData.id,
+                    kills: playerData.kills,
+                    status: playerData.status,
+                    targetName: targetName,
+                    counter: playerData.counter,
+                    killSinceShuffle: playerData.killSinceShuffle,
+                    killColor: killColor,
+                    name: playerData.name,
+                    statusColor: statusColor,
+                    window: 'view'
+                });
+            });
         });
+    }
+
+    componentWillUnmount(){
+        this.ref.off();
     }
 
     render(){
@@ -172,31 +186,38 @@ class PlayerView extends Component{
         }
 
         return(
-            <div style={this.style}>
-                <div>
-                    <h1><u>{this.props.location.state.name}</u></h1>
-                    <label>
-                        Kills:
-                        <input name='kills' value={this.state.kills} style={this.inputStyle} onChange={this.handleInputChange}/>
-                    </label><br/>
-                    <p>Status:
-                        <button style={statusButtonStyle} onClick={this.toggleStatus}>
-                            {this.state.status ? 'Alive' : 'Slain'}
-                        </button>
-                    </p>
-                    <p>Target: {this.state.targetName}</p>
-                    <label>
-                        Counter:
-                        <input name='counter' value={this.state.counter} style={this.inputStyle} onChange={this.handleInputChange}/>
-                    </label><br/>
-                    <p>Kill this round?
-                        <button style={killButtonStyle} onClick={this.toggleKill}>
-                            {this.state.killSinceShuffle ? 'Yes' : 'No'}
-                        </button>
-                    </p>
-                    <button style={this.buttonStyle} onClick={this.submit}>Save Changes</button><br/>
-                    <button style={this.buttonStyle} onClick={this.reset}>Reset</button>
+            <div>
+                {
+                this.state.window ==='loading' ?
+                <Loading/>
+                :
+                <div style={this.style}>
+                    <div>
+                        <h1><u>{this.state.name}</u></h1>
+                        <label>
+                            Kills:
+                            <input name='kills' value={this.state.kills} style={this.inputStyle} onChange={this.handleInputChange}/>
+                        </label><br/>
+                        <p>Status:
+                            <button style={statusButtonStyle} onClick={this.toggleStatus}>
+                                {this.state.status ? 'Alive' : 'Slain'}
+                            </button>
+                        </p>
+                        <label>
+                            Counter:
+                            <input name='counter' value={this.state.counter} style={this.inputStyle} onChange={this.handleInputChange}/>
+                        </label><br/>
+                        <p>Kill this round?
+                            <button style={killButtonStyle} onClick={this.toggleKill}>
+                                {this.state.killSinceShuffle ? 'Yes' : 'No'}
+                            </button>
+                        </p>
+                        <p>{this.state.freeAgent ? 'Free Agent' : `${this.state.target ? `Target: ${this.state.targetName}` : `No Target`}`}</p>
+                        <button style={this.buttonStyle} onClick={this.submit}>Save Changes</button><br/>
+                        <button style={this.buttonStyle} onClick={this.reset}>Reset</button>
+                    </div>
                 </div>
+                }
             </div>
         );
     }

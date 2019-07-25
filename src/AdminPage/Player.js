@@ -28,10 +28,11 @@ const player = props => {
         target: props.target,
         targetName: null
     }
+
     let targetName;
     if(props.target){
-        firebase.database().ref(`users/${props.target}`).on('value', snap => {
-            targetName = snap.val().name
+        firebase.database().ref(`users/${props.target}/name`).on('value', snap => {
+            targetName = snap.val();
         });
     }else if(props.freeAgent){
         targetName = 'Free Agent';
@@ -44,17 +45,17 @@ const player = props => {
     return(
         <tr>
             <td style={tdStyle}>
-                <Link to={{pathname: `/PlayerView/${data.id}`, state: data}} style={linkStyle}>
+                <Link to={`/PlayerView/${data.id}`} style={linkStyle}>
                     {props.name}
                 </Link>
             </td>
             <td style={tdStyle}>
-                <Link to={{pathname: `/PlayerView/${data.id}`, state: data}} style={linkStyle}>
+                <Link to={`/PlayerView/${data.id}`} style={linkStyle}>
                     {targetName}
                 </Link>
             </td>
             <td style={tdStyle}>
-                <Link to={{pathname: `/PlayerView/${data.id}`, state: data}} style={linkStyle}>
+                <Link to={`/PlayerView/${data.id}`} style={linkStyle}>
                     {props.counter}
                 </Link>
             </td>
