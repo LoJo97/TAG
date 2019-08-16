@@ -11,17 +11,23 @@ class CreateGame extends Component{
         gameId: '',
         includeBot: false,
         accessToken: '',
-        groupId: ''
+        groupId: '',
+        rules: ''
     }
 
-    style = {
-        position: 'absolute', left: '50%', top: '50%',
-        transform: 'translate(-50%, -50%)',
-        textAlign: 'center'
+    style = { 
+        display: 'flex',
+        justifyContent:'center',
+        alignItems: 'center',
+        position: 'absolute',
+        textAlign: 'center',
+        left: '50%',
+        width: '50%',
+        transform: 'translate(-50%, -0%)'
     }
 
     inputStyle = {
-        padding: '10%',
+        padding: '5%',
         margin: '5%',
         display: 'inline block',
         width: '75%'
@@ -66,7 +72,8 @@ class CreateGame extends Component{
             accessToken: this.state.accessToken,
             groupId: this.state.groupId,
             botId: '',
-            groupName: ''
+            groupName: '',
+            rules: this.state.rules
         })
         .then(() => { //Update the new admin
             userRef.update({
@@ -106,30 +113,36 @@ class CreateGame extends Component{
 
     render(){
         return(
-            this.state.window === 'create' ?
             <div style={this.style}>
-                <h1>Game ID: {this.state.gameId}</h1>
-                <label>
-                    <input name='includeBot' type='checkbox' checked={this.state.includeBot} onChange={this.handleInputChange}/>
-                    Include GroupMe Bot?
-                </label>
                 {
-                    this.state.includeBot ?
-                    <div>
-                        <input name='accessToken' placeholder='Access Token' onChange={this.handleInputChange} style={this.inputStyle}/>
-                        <br/>
-                        <input name='groupId' placeholder='Group ID' onChange={this.handleInputChange} style={this.inputStyle}/>
-                    </div>
-                    :
-                    null
+                this.state.window === 'create' ?
+                <div>
+                    <h1>Game ID: {this.state.gameId}</h1>
+                    <h4>Rules Input:</h4>
+                    <textarea name='rules' rows='10' cols='40' value={this.state.rules} onChange={this.handleInputChange}></textarea>
+                    <label>
+                        <input name='includeBot' type='checkbox' checked={this.state.includeBot} onChange={this.handleInputChange}/>
+                        Include GroupMe Bot?
+                    </label>
+                    {
+                        this.state.includeBot ?
+                        <div>
+                            <input name='accessToken' placeholder='Access Token' onChange={this.handleInputChange} style={this.inputStyle}/>
+                            <br/>
+                            <input name='groupId' placeholder='Group ID' onChange={this.handleInputChange} style={this.inputStyle}/>
+                        </div>
+                        :
+                        null
+                    }
+                    <button style={this.buttonStyle} onClick={this.create}>Create!</button>
+                </div>
+                :
+                this.state.window === 'stats' ?
+                <Redirect push to='/'/>
+                :
+                <Loading/>
                 }
-                <button style={this.buttonStyle} onClick={this.create}>Create!</button>
             </div>
-            :
-            this.state.window === 'stats' ?
-            <Redirect push to='/'/>
-            :
-            <Loading/>
         );
     }
 }

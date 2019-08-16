@@ -212,7 +212,7 @@ class PlayerView extends Component{
                                 {this.state.killSinceShuffle ? 'Yes' : 'No'}
                             </button>
                         </p>
-                        <p>{this.state.freeAgent ? 'Free Agent' : `${this.state.target ? `Target: ${this.state.targetName}` : `No Target`}`}</p>
+                        <p>{this.state.freeAgent ? 'Free Agent' : `${this.state.targetName ? `Target: ${this.state.targetName}` : `No Target`}`}</p>
                         <button style={this.buttonStyle} onClick={this.submit}>Save Changes</button><br/>
                         <button style={this.buttonStyle} onClick={this.reset}>Reset</button>
                     </div>

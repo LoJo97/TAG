@@ -27,6 +27,13 @@ class SelectTarget extends Component {
         border: 'none'
     }
 
+    selectStyle = {
+        marginBottom: '25%',
+        padding: '5%',
+        backgroundColor: 'rgb(146, 143, 143)',
+        color: 'white'
+    }
+
     updateSelection = event => {
         this.setState({
             selection: event.target.value
@@ -92,7 +99,7 @@ class SelectTarget extends Component {
     render(){
         return(
             <div style={this.style}>
-                <select onChange={this.updateSelection}>
+                <select style={this.selectStyle} onChange={this.updateSelection}>
                     {
                         Object.keys(this.state.playerData).map(key => {
                             if(this.state.playerData[key].status && (key !== this.state.firebaseUser.uid)){
