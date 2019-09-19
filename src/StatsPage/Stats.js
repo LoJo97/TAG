@@ -35,9 +35,9 @@ class Stats extends Component{
         position: 'absolute',
         textAlign: 'center',
         left: '50%',
-        top: '50%',
+        top: '0%',
         width: '50%',
-        transform: 'translate(-50%, -50%)'
+        transform: 'translate(-50%, 0%)'
     }
     
     inputStyle = {
@@ -174,6 +174,7 @@ class Stats extends Component{
                     <div style={this.style}>
                         <div>
                         <h1><u>Stats</u></h1>
+                        <Link to='/Rules'><button style={this.buttonStyle}>Rules</button></Link>
                         <p>Name: {this.state.name}</p>
                         <p>Alias: {this.state.displayName}</p>
                         { //If in a game, display current stats or admin link. If not, let user join a game

@@ -11,8 +11,7 @@ class CreateGame extends Component{
         gameId: '',
         includeBot: false,
         accessToken: '',
-        groupId: '',
-        rules: ''
+        groupId: ''
     }
 
     style = { 
@@ -72,8 +71,7 @@ class CreateGame extends Component{
             accessToken: this.state.accessToken,
             groupId: this.state.groupId,
             botId: '',
-            groupName: '',
-            rules: this.state.rules
+            groupName: ''
         })
         .then(() => { //Update the new admin
             userRef.update({
@@ -118,8 +116,6 @@ class CreateGame extends Component{
                 this.state.window === 'create' ?
                 <div>
                     <h1>Game ID: {this.state.gameId}</h1>
-                    <h4>Rules Input:</h4>
-                    <textarea name='rules' rows='10' cols='40' value={this.state.rules} onChange={this.handleInputChange}></textarea>
                     <label>
                         <input name='includeBot' type='checkbox' checked={this.state.includeBot} onChange={this.handleInputChange}/>
                         Include GroupMe Bot?

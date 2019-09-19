@@ -8,6 +8,7 @@ import Admin from './AdminPage/Admin';
 import PlayerView from './AdminPage/PlayerView';
 import SelectTarget from './StatsPage/SelectTarget';
 import CreateGame from './StatsPage/CreateGame';
+import Rules from './StatsPage/Rules';
 
 class App extends Component {
 	state = {
@@ -24,6 +25,7 @@ class App extends Component {
 				<Route exact path='/SelectTarget' component={SelectTarget}/>
 				<Route exact path='/CreateGame' component={CreateGame}/>
 				<Route path='/PlayerView/:id' component={PlayerView}/>
+				<Route path='/Rules' component={Rules}/>
 			</div>
 			);
 	}
