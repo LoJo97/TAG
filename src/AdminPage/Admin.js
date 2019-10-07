@@ -252,7 +252,6 @@ class Admin extends Component {
                                     name={this.state.playerData[index].name}
                                     status={this.state.playerData[index].status}
                                     target={this.state.playerData[index].target}
-                                    //targetName={this.state.playerData[this.state.playerData[index].target].name}
                                 />
                             );
                         })
@@ -284,7 +283,7 @@ class Admin extends Component {
                     <input name='counterTolerance' placeholder='Counter Tolerance' style={this.inputStyle} onChange={this.handleInputChange}/><br/>
                     <label>
                         Add Free Agent?
-                        <input name='freeAgent' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
+                        <input name='freeAgents' type='checkbox' checked={this.state.freeAgents} onChange={this.handleInputChange}/>
                     </label><br/>
                     <button style={this.buttonStyle} onClick={this.start}>Begin Game</button>
                     {this.table()}
@@ -314,7 +313,7 @@ class Admin extends Component {
                     <button style={this.buttonStyle} onClick={this.removeTargetsButton}>Remove Targets</button><br/>
                     <button style={this.buttonStyle} onClick={this.killIdleButton}>Kill Idlers</button><br/>
                     {this.table()}
-                    <Link to='/KillLog'><button style={this.buttonStyle}>Kill Log</button></Link>
+                    <Link to='/KillLog'><button style={this.buttonStyle}>Kill Log</button></Link><br/>
                     <button style={this.endButtonStyle} onClick={this.end}>End Game</button><br/>
                 </div>
                 }

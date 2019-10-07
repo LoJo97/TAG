@@ -100,6 +100,7 @@ class Stats extends Component{
 
             let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');
             if(c){
+                this.setState({window: 'loading'});
                 targetRef.once('value').then(snapshot => {
                     //Updates cloud player data
                     playerRef.update({
@@ -112,6 +113,9 @@ class Stats extends Component{
                         //Update cloud target data
                         targetRef.update({
                             status: false
+                        })
+                        .then(() => {
+                            this.setState({window: 'stats'});
                         });
                     });
                 });

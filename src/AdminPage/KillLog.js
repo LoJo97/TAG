@@ -99,6 +99,7 @@ class KillLog extends Component {
             this.state.window === 'admin' ?
             <div style={this.style}>
                 <div>
+                <h2>Players Left: {this.state.numLivePlayers}/{this.state.numPlayers}</h2>
                 <h2>Today's Kills</h2>
                 <table>
                     <thead>
@@ -113,16 +114,17 @@ class KillLog extends Component {
                         <tbody>
                             {
                                 Object.keys(this.state.killsToday).map(index => {
+                                    let kill = this.state.killsToday[index];
                                     return(
                                         <tr>
                                             <td style={this.tdStyle}>
-                                                {`${this.state.killsToday[index].month}/${this.state.killsToday[index].day} ${this.state.killsToday[index].hour}:${this.state.killsToday[index].minutes}`}
+                                                {`${kill.month + 1}/${kill.day} ${kill.hour - 5}:${kill.minutes < 10 ? '0' : ''}${kill.minutes}`}
                                             </td>
                                             <td style={this.tdStyle}>
-                                                {this.state.killsToday[index].assassinName}
+                                                {kill.assassinName}
                                             </td>
                                             <td style={this.tdStyle}>
-                                                {this.state.killsToday[index].victimName}
+                                                {kill.victimName}
                                             </td>
                                         </tr>
                                     );
@@ -133,7 +135,7 @@ class KillLog extends Component {
                         <tbody></tbody>
                     }
                 </table>
-                
+
                 <h2>Previous Kills</h2>
                 <table>
                     <thead>
@@ -144,21 +146,22 @@ class KillLog extends Component {
                         </tr>
                     </thead>
                     {
-                        this.state.killsToday ?
+                        this.state.killLog ?
                         <tbody>
                             {
                                 Object.keys(this.state.killLog).map(index => {
                                     Object.keys(this.state.killLog[index]).map(innerIndex => {
+                                        let kill = this.state.killLog[index][innerIndex];
                                         return(
                                             <tr>
                                                 <td style={this.tdStyle}>
-                                                    {`${this.state.killLog[index][innerIndex].month}/${this.state.killLog[index][innerIndex].day} ${this.state.killLog[index][innerIndex].hour}:${this.state.killLog[index][innerIndex].minutes}`}
+                                                    {`${kill.month + 1}/${kill.day} ${kill.hour - 5}:${kill.minutes < 10 ? '0' : ''}${kill.minutes}`}
                                                 </td>
                                                 <td style={this.tdStyle}>
-                                                    {this.state.killLog[index][innerIndex].assassinName}
+                                                    {kill.assassinName}
                                                 </td>
                                                 <td style={this.tdStyle}>
-                                                    {this.state.killLog[index][innerIndex].victimName}
+                                                    {kill.victimName}
                                                 </td>
                                             </tr>
                                         );

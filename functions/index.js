@@ -91,8 +91,7 @@ exports.killIdlersNow = functions.https.onCall((data, context) => {
  * DATABASE TRIGGERED FUNCTIONS *
  ********************************/
 
-exports.createBot = functions.database.ref('games/{gameId}')
-	.onCreate(snap => {
+exports.createBot = functions.database.ref('games/{gameId}').onCreate(snap => {
 		const cur = snap.val();
 		const gameRef = snap.ref;
 		let botId = '', groupName = '';
@@ -130,8 +129,7 @@ exports.createBot = functions.database.ref('games/{gameId}')
 		return 0;
 	});
 
-exports.addPlayer = functions.database.ref('games/{gameId}/players/{pushId}')
-	.onCreate((snap, context) => {
+exports.addPlayer = functions.database.ref('games/{gameId}/players/{pushId}').onCreate((snap, context) => {
 		let pid = snap.val().pID;
 
 		let gameRef = admin.database().ref(`games/${context.params.gameId}`);
@@ -158,8 +156,7 @@ exports.addPlayer = functions.database.ref('games/{gameId}/players/{pushId}')
 	});
 
 //Repair the targeting chain when a player is killed
-exports.repairChain = functions.database.ref('users/{userId}/status') //On status change
-	.onUpdate(change => {
+exports.repairChain = functions.database.ref('users/{userId}/status').onUpdate(change => { //On status change
 		let victimRef = change.after.ref.parent; //Get the ref to users/{userId}
 
 		return victimRef.once('value').then(snapshot => {
@@ -222,8 +219,7 @@ exports.repairChain = functions.database.ref('users/{userId}/status') //On statu
 	});
 
 //Check if the game should be ended when numLivePlayers is updated
-exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
-	.onUpdate(change => {
+exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers').onUpdate(change => {
 		let snapshot = change.after;
 		let value = snapshot.val(); //Value of number of live players
 
@@ -334,9 +330,7 @@ exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
  ***********************/
 
 //Automatically shuffles players in games whose nextShuffle counter has reached 0
-exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
-.timeZone('America/Chicago')
-.onRun(context => {
+exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *').timeZone('America/Chicago').onRun(context => {
 	return admin.database().ref('games').once('value').then(snap => {
 		let promiseList = [];
 		snap.forEach(game => {
@@ -368,9 +362,7 @@ exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
 });
 
 //Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
-exports.scheduledKillAnnouncement = functions.pubsub.schedule('30 14 * * *')
-.timeZone('America/Chicago')
-.onRun(context => {
+exports.scheduledKillAnnouncement = functions.pubsub.schedule('30 14 * * *').timeZone('America/Chicago').onRun(context => {
 	let msg = '';
 	return admin.database().ref(`games`).orderByChild('isLive').equalTo(true).once('value').then(snap => {
 		let promiseArr = [];

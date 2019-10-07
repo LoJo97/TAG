@@ -13,11 +13,20 @@ table {
   text-align: center;
 }
 
-td, th {
+td {
   padding-top: 1em;
   padding-bottom: 1em;
   text-align: center;
   border: 2px solid white;
+}
+
+th {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  text-align: center;
+  border: 2px solid white;
+  background-color: rgb(40, 40, 161);
+  color: white;
 }
 
 tr:nth-child(even){
@@ -26,10 +35,4 @@ tr:nth-child(even){
 
 tr:hover{
   background-color: rgb(40, 137, 182);
-}
-
-th {
-  text-align: left;
-  background-color: rgb(40, 40, 161);
-  color: white;
 }
