@@ -174,42 +174,42 @@ exports.repairChain = functions.database.ref('users/{userId}/status') //On statu
 				let assassin;
 
 				return gameRef.once('value').then(game => {
-					return gameRef.update({ //Update the number of live players
-						numLivePlayers: game.val().numLivePlayers - 1
-					})
-					.then(() => {
-						return usersRef.orderByChild('target').equalTo(victimId).once('value')
-						.then(snap => {
-							//Store the assassin
-							snap.forEach(data => {
-								assassin = data.val();
+					return usersRef.orderByChild('target').equalTo(victimId).once('value')
+					.then(snap => {
+						//Store the assassin
+						snap.forEach(data => {
+							assassin = data.val();
+						});
+
+						//If assassin exists and victim has target, update target to victim's target
+						let assassinPromise = Promise.resolve(0);
+						if(assassin && target){ 
+							assassinPromise = admin.database().ref(`users/${assassin.id}`).update({
+								target: target
 							});
+						}
 
-							//If assassin exists and victim has target, update target to victim's target
-							let assassinPromise = Promise.resolve(0);
-							if(assassin && target){ 
-								assassinPromise = admin.database().ref(`users/${assassin.id}`).update({
-									target: target
-								});
-							}
-
-							return assassinPromise.then(() => {
-								//Update kill log
-								let date = new Date();
-								return gameRef.child('killsToday').push({
-									month: date.getMonth(),
-									day: date.getDate(),
-									hour: date.getHours(),
-									minutes: date.getMinutes(),
-									victimId: victimId,
-									victimName: victim.name,
-									assassinId: assassin.id,
-									assassinName: assassin.name
+						return assassinPromise.then(() => {
+							//Update kill log
+							let date = new Date();
+							return gameRef.child('killsToday').push({
+								month: date.getMonth(),
+								day: date.getDay(),
+								hour: date.getHours(),
+								minutes: date.getMinutes(),
+								victimId: victimId,
+								victimName: victim.name,
+								assassinId: assassin.id,
+								assassinName: assassin.name
+							})
+							.then(() => {
+								return victimRef.update({
+									target: null,
+									freeAgent: false
 								})
 								.then(() => {
-									return victimRef.update({
-										target: null,
-										freeAgent: false
+									return gameRef.update({ //Update the number of live players
+										numLivePlayers: game.val().numLivePlayers - 1
 									});
 								});
 							});
@@ -247,7 +247,7 @@ exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers')
 					})
 					.then(snap => {
 						snap.forEach(player => { //Search the set of players for the last live player
-							if(player.val().status){ //If the player is alive, set the message to contain their name
+							if(player.val().status && player.val().target === player.val().id){ //If the player is alive, set the message to contain their name
 								msg = `We have a winner! ${player.val().name} is the victor in this game of Water Tag!`;
 							}
 						});
@@ -368,7 +368,7 @@ exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *')
 });
 
 //Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
-exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *')
+exports.scheduledKillAnnouncement = functions.pubsub.schedule('30 14 * * *')
 .timeZone('America/Chicago')
 .onRun(context => {
 	let msg = '';

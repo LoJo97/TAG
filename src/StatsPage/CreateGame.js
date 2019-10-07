@@ -120,6 +120,7 @@ class CreateGame extends Component{
                         <input name='includeBot' type='checkbox' checked={this.state.includeBot} onChange={this.handleInputChange}/>
                         Include GroupMe Bot?
                     </label>
+                    <br/>
                     {
                         this.state.includeBot ?
                         <div>

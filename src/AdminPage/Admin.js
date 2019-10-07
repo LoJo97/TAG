@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import * as firebase from 'firebase';
-import {Redirect} from 'react-router-dom';
+import {Redirect, Link} from 'react-router-dom';
 import Player from './Player';
 import Loading from '../LoadingPage/Loading';
 import {app} from '../config';
@@ -288,7 +288,7 @@ class Admin extends Component {
                     </label><br/>
                     <button style={this.buttonStyle} onClick={this.start}>Begin Game</button>
                     {this.table()}
-                    <button style={this.buttonStyle} onClick={this.end}>End Game</button>
+                    <button style={this.endButtonStyle} onClick={this.end}>End Game</button>
                 </div>
                 :
                 <div>
@@ -314,6 +314,7 @@ class Admin extends Component {
                     <button style={this.buttonStyle} onClick={this.removeTargetsButton}>Remove Targets</button><br/>
                     <button style={this.buttonStyle} onClick={this.killIdleButton}>Kill Idlers</button><br/>
                     {this.table()}
+                    <Link to='/KillLog'><button style={this.buttonStyle}>Kill Log</button></Link>
                     <button style={this.endButtonStyle} onClick={this.end}>End Game</button><br/>
                 </div>
                 }
