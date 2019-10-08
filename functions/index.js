@@ -362,7 +362,7 @@ exports.scheduledShuffle = functions.pubsub.schedule('0 12 * * *').timeZone('Ame
 });
 
 //Every day at 10 PM Central, post a message listing fallen players for the past 24 hours
-exports.scheduledKillAnnouncement = functions.pubsub.schedule('30 14 * * *').timeZone('America/Chicago').onRun(context => {
+exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *').timeZone('America/Chicago').onRun(context => {
 	let msg = '';
 	return admin.database().ref(`games`).orderByChild('isLive').equalTo(true).once('value').then(snap => {
 		let promiseArr = [];
