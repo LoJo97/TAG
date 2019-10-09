@@ -118,7 +118,7 @@ class KillLog extends Component {
                                     return(
                                         <tr>
                                             <td style={this.tdStyle}>
-                                                {`${kill.month + 1}/${kill.day} ${kill.hour - 5}:${kill.minutes < 10 ? '0' : ''}${kill.minutes}`}
+                                                {`${kill.month + 1}/${kill.day} ${kill.hour}:${kill.minutes < 10 ? '0' : ''}${kill.minutes} UTC`}
                                             </td>
                                             <td style={this.tdStyle}>
                                                 {kill.assassinName}
@@ -155,7 +155,7 @@ class KillLog extends Component {
                                         return(
                                             <tr>
                                                 <td style={this.tdStyle}>
-                                                    {`${kill.month + 1}/${kill.day} ${kill.hour - 5}:${kill.minutes < 10 ? '0' : ''}${kill.minutes}`}
+                                                    {`${kill.month + 1}/${kill.day} ${kill.hour}:${kill.minutes < 10 ? '0' : ''}${kill.minutes} UTC`}
                                                 </td>
                                                 <td style={this.tdStyle}>
                                                     {kill.assassinName}
