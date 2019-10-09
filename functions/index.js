@@ -190,6 +190,7 @@ exports.repairChain = functions.database.ref('users/{userId}/status').onUpdate(c
 							//Update kill log
 							let date = new Date();
 							return gameRef.child('killsToday').push({
+								year: date.getFullYear(),
 								month: date.getMonth(),
 								day: date.getDay(),
 								hour: date.getHours(),
@@ -247,6 +248,12 @@ exports.endGame = functions.database.ref('games/{gameId}/numLivePlayers').onUpda
 								msg = `We have a winner! ${player.val().name} is the victor in this game of Water Tag!`;
 							}
 						});
+						msg += `The last players to fall were:\n`;
+						for(key in gameData.killsToday){
+							msg += `${gameData.killsToday[key].victimName}\n`;
+						}
+						msg += `Now, let's have a final roast for these fallen and especially our illustrious winner!`;
+
 						botPromise = sendAndDestroy(gameData, msg);
 					});
 				}else if(value === -1){
@@ -404,7 +411,7 @@ exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *').time
 		if(e) console.log(`Error getting games: ${e}`);
 	});
 });
-	
+
 /********************
  * HELPER FUNCTIONS * 
  ********************/
@@ -465,16 +472,36 @@ const killIdlers = (gameId, standard) => {
 	let playersRef = admin.database().ref('users').orderByChild('gameId').equalTo(gameId);
 	return playersRef.once('value').then(snap => {
 		let playerData = snap.val();
+		let killRecords = [];
 		for(let playerID in playerData){
             if(playerData[playerID].counter >= standard){
                 playerData[playerID].status = false;
-                playerData[playerID].freeAgent = false;
+				playerData[playerID].freeAgent = false;
+				killRecords.push({
+					year: date.getFullYear(),
+					month: date.getMonth(),
+					day: date.getDay(),
+					hour: date.getHours(),
+					minutes: date.getMinutes(),
+					victimId: playerData[playerID].id,
+					victimName: playerData[playerID].name,
+					assassinId: "0",
+					assassinName: "TIME"
+				})
             }
 		}
 		return admin.database().ref('users').update(playerData)
 		.catch(e => {
 			console.log(`Error updating player data: ${e}`);
-		});
+		})
+		.then(() => {
+			let promises = [];
+			killRecords.forEach(element => {
+				let p = admin.database().ref(`games/${gameId}/killsToday`).push(element);
+				promises.push(p);
+			});
+			return Promise.all(promises);
+		})
 	})
 	.catch(e => {
 		console.log(`Error fetching player data: ${e}`);

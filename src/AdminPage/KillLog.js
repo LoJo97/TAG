@@ -39,6 +39,48 @@ class KillLog extends Component {
         textDecoration: 'none'
     }
 
+    getDaysInMonth = (month, year) => {
+        if(month === 1 || month === 3 || month === 5 || month === 7 || month === 8 || month === 10 || month === 12){
+            return 31;
+        }else if(month === 2){
+            if((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0){
+                return 29;
+            }else{
+                return 28;
+            }
+        }else{
+            return 30;
+        }
+    }
+
+    formatDate = (y, m, d, h, min) => {
+        let year = y;
+        let month = m;
+        let day = d;
+        let hour = h;
+        let minutes = min;
+
+        if(hour < 5){ //If hour in UTC is less than 5...
+            hour = 24 + (hour - 5); //Convert the hour to Central Time
+            //And adjust the date accordingly:
+            if(day === 1){ //If the day is the first of the month
+                //Adjust the month
+                if(month === 1){ //If the month is January, adjust to December
+                    month = 12;
+                }else{ //Otherwise decrement month
+                    month--;
+                }
+                day = this.getDaysInMonth(year, month); //Adjust days to be the last of the previous month
+            }else{
+                day--;
+            }
+        }else{
+            hour -= 5;
+        }
+
+        return `${month}/${day}/${year} ${hour}:${minutes < 10 ? '0' : ''}${minutes}`;
+    }
+
     //On mount, load in neccessary data from Firebase
     componentDidMount() {
         this.firebaseListener = firebase.auth().onAuthStateChanged(firebaseUser => {
@@ -118,7 +160,7 @@ class KillLog extends Component {
                                     return(
                                         <tr>
                                             <td style={this.tdStyle}>
-                                                {`${kill.month + 1}/${kill.day} ${kill.hour}:${kill.minutes < 10 ? '0' : ''}${kill.minutes} UTC`}
+                                                {this.formatDate(kill.year, kill.month, kill.day, kill.hour, kill.minutes)}
                                             </td>
                                             <td style={this.tdStyle}>
                                                 {kill.assassinName}
@@ -155,7 +197,7 @@ class KillLog extends Component {
                                         return(
                                             <tr>
                                                 <td style={this.tdStyle}>
-                                                    {`${kill.month + 1}/${kill.day} ${kill.hour}:${kill.minutes < 10 ? '0' : ''}${kill.minutes} UTC`}
+                                                    {this.formatDate(kill.year, kill.month, kill.day, kill.hour, kill.minutes)}
                                                 </td>
                                                 <td style={this.tdStyle}>
                                                     {kill.assassinName}

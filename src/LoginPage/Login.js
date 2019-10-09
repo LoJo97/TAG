@@ -94,7 +94,7 @@ class Login extends Component {
                     <Redirect push to='/'/>
                     :
                     <div style={this.style}>
-                        <h1><u>Assassin</u></h1>
+                        <h1><u>T.A.G</u></h1>
                         <input id='txtEmail' style={this.inputStyle} type='text' placeholder='Email' onChange={e => this.updateEmail(e)}/> <br/>
                         <input id='txtPass' style={this.inputStyle} type='password' placeholder='Password' onChange={e => this.updatePass(e)}/> <br/>
                         {
