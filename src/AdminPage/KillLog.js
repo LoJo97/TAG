@@ -150,8 +150,8 @@ class KillLog extends Component {
                         <tbody>
                             {
                                 Object.keys(this.state.killLog).map(index => {
-                                    Object.keys(this.state.killLog[index]).map(innerIndex => {
-                                        let kill = this.state.killLog[index][innerIndex];
+                                    return Object.keys(this.state.killLog[index].log).map(innerIndex => {
+                                        let kill = this.state.killLog[index].log[innerIndex];
                                         return(
                                             <tr>
                                                 <td style={this.tdStyle}>
