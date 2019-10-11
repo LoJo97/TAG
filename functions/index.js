@@ -474,6 +474,7 @@ const killIdlers = (gameId, standard) => {
 		let playerData = snap.val();
 		let killRecords = [];
 		for(let playerID in playerData){
+			let date = new Date();
             if(playerData[playerID].counter >= standard){
                 playerData[playerID].status = false;
 				playerData[playerID].freeAgent = false;
@@ -486,7 +487,7 @@ const killIdlers = (gameId, standard) => {
 					victimId: playerData[playerID].id,
 					victimName: playerData[playerID].name,
 					assassinId: "0",
-					assassinName: "TIME"
+					assassinName: "COUNTER"
 				});
             }
 		}
