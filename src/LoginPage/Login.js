@@ -60,7 +60,8 @@ class Login extends Component {
             }else{
                 this.setState({error: false});
             }
-        }).then(() => this.setState({window: '/'}));
+        })
+        .then(() => {if(!this.state.error) this.setState({window: '/'})});
     }
 
     componentDidMount() {

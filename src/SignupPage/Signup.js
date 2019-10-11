@@ -13,6 +13,7 @@ class Signup extends Component {
         pass: '',
         confirmPass: '',
         signingIn: false,
+        error: '',
         window: 'loading'
     }
 
@@ -50,9 +51,9 @@ class Signup extends Component {
             const promise = auth.createUserWithEmailAndPassword(email, pass);
             promise.catch(e => {
                 if(e){
-                    this.setState({error: true});
+                    this.setState({error: e.message});
                 }else{
-                    this.setState({error: false});
+                    this.setState({error: ''});
                 }
             });
 
@@ -79,7 +80,7 @@ class Signup extends Component {
                 }
             });
         }else{
-            console.log('Passwords do not match');
+            this.setState({error: 'Passwords do not match'});
         }
     }
 
@@ -152,7 +153,7 @@ class Signup extends Component {
                         <input style={this.inputStyle} type='password' placeholder='Confirm Password' onChange={e => this.updateConfirmPass(e)}/> <br/>
                         {
                             this.state.error ?
-                            <p style={{color: 'red'}}>Failed to sign up</p>
+                            <p style={{color: 'red'}}>{this.state.error}</p>
                             :
                             null
                         }

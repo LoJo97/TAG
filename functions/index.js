@@ -487,7 +487,7 @@ const killIdlers = (gameId, standard) => {
 					victimName: playerData[playerID].name,
 					assassinId: "0",
 					assassinName: "TIME"
-				})
+				});
             }
 		}
 		return admin.database().ref('users').update(playerData)
