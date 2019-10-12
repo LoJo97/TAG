@@ -192,7 +192,7 @@ exports.repairChain = functions.database.ref('users/{userId}/status').onUpdate(c
 							return gameRef.child('killsToday').push({
 								year: date.getFullYear(),
 								month: date.getMonth(),
-								day: date.getDay(),
+								day: date.getDate(),
 								hour: date.getHours(),
 								minutes: date.getMinutes(),
 								victimId: victimId,
@@ -481,7 +481,7 @@ const killIdlers = (gameId, standard) => {
 				killRecords.push({
 					year: date.getFullYear(),
 					month: date.getMonth(),
-					day: date.getDay(),
+					day: date.getDate(),
 					hour: date.getHours(),
 					minutes: date.getMinutes(),
 					victimId: playerData[playerID].id,

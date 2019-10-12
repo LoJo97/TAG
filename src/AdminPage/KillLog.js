@@ -160,7 +160,7 @@ class KillLog extends Component {
                                     return(
                                         <tr>
                                             <td style={this.tdStyle}>
-                                                {this.formatDate(kill.year, kill.month, kill.day, kill.hour, kill.minutes)}
+                                                {this.formatDate(kill.year, kill.month + 1, kill.day, kill.hour, kill.minutes)}
                                             </td>
                                             <td style={this.tdStyle}>
                                                 {kill.assassinName}
@@ -197,7 +197,7 @@ class KillLog extends Component {
                                         return(
                                             <tr>
                                                 <td style={this.tdStyle}>
-                                                    {this.formatDate(kill.year, kill.month, kill.day, kill.hour, kill.minutes)}
+                                                    {this.formatDate(kill.year, kill.month + 1, kill.day, kill.hour, kill.minutes)}
                                                 </td>
                                                 <td style={this.tdStyle}>
                                                     {kill.assassinName}
