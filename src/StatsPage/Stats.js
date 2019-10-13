@@ -90,10 +90,18 @@ class Stats extends Component{
             console.log('You cannot admin and particpate in a game');
         }
     }
+
+    //Starts the kill process by logging a kill, takes {target, assassin, gameId}
+    logKill = firebase.functions().httpsCallable('logKill');
     
     //Kills player's target (cloud function will take care of a lot of this)
     killTarget = () => {
-        let assassinID = this.state.firebaseUser.uid;
+        let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');
+        if(c){
+            this.logKill({target: this.state.targetId, assassin: this.state.firebaseUser.uid, gameId: this.state.gameId});
+        }
+
+/*
         if(!this.state.freeAgent){
             let targetRef = firebase.database().ref(`users/${this.state.targetId}`);
             let playerRef = firebase.database().ref(`users/${assassinID}`);
@@ -121,6 +129,7 @@ class Stats extends Component{
                 });
             }
         }
+*/
     }
 
     componentDidMount() {
@@ -131,6 +140,7 @@ class Stats extends Component{
                 ref.on('value', snap => {
                     this.setState({
                         firebaseUser: firebaseUser,
+                        gameId: snap.val().gameId,
                         displayName: snap.val().displayName,
                         name: snap.val().name,
                         kills: snap.val().kills,
