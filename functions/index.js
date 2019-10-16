@@ -266,7 +266,9 @@ exports.respondToLog = functions.database.ref('games/{gameId}/killsToday/{logId}
 					//Increase the free agent's kills
 					return admin.database().ref(`users/${log.assassinId}`).once('value').then(agentSnap => {
 						return admin.database().ref(`users/${log.assassinId}`).update({
-							kills: agentSnap.val().kills + 1
+							kills: agentSnap.val().kills + 1,
+							killSinceShuffle: true,
+							counter: 0
 						})
 						.then(() => {
 							return admin.database().ref(`games/${gameId}`).once('value').then(gameSnap => {
@@ -283,7 +285,9 @@ exports.respondToLog = functions.database.ref('games/{gameId}/killsToday/{logId}
 		return admin.database().ref(`users/${log.assassinId}`).once('value').then(assassinSnap => {
 			//Increase the assassin's kills
 			return admin.database().ref(`users/${log.assassinId}`).update({
-				kills: assassinSnap.val().kills + 1
+				kills: assassinSnap.val().kills + 1,
+				killSinceShuffle: true,
+				counter: 0
 			})
 			.then(() => {
 				return admin.database().ref(`users/${log.victimId}`).update({
@@ -306,7 +310,9 @@ exports.respondToLog = functions.database.ref('games/{gameId}/killsToday/{logId}
 			return admin.database().ref(`users/${log.assassinId}`).once('value').then(assassinSnap => {
 				return admin.database().ref(`users/${log.assassinId}`).update({
 					kills: assassinSnap.val().kills + 1,
-					target: newTarget
+					target: newTarget,
+					killSinceShuffle: true,
+					counter: 0
 				})
 				.then(() => {
 					return admin.database().ref(`users/${log.victimId}`).update({
