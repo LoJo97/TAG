@@ -22,9 +22,11 @@ class Admin extends Component {
         counterTolerance: 0,
         //Player data
         playerData: {},
+        playerDataSorted: [],
         //Window data
         loggingIn: false,
-        window: 'loading'
+        window: 'loading',
+        sort: 'name'
     }
 
     style = { 
@@ -172,6 +174,23 @@ class Admin extends Component {
         });
     }
 
+    sortPlayerData = () => {
+        let data = this.state.playerData;
+        let playerArr = [];
+
+        Object.keys(data).map(index => {
+            playerArr.push(data[index]);
+        });
+
+        if(this.state.sort === 'counter'){
+            playerArr.sort((a, b) => (a.counter > b.counter) ? 1 : (a.counter === b.counter) ? ((a.name > b.name) ? 1 : -1) : -1);
+        }else{
+            playerArr.sort((a, b) => (a.name > b.name) ? 1 : -1);
+        }
+
+        this.setState({playerDataSorted: playerArr});
+    }
+
     //On mount, load in neccessary data from Firebase
     componentDidMount() {
         this.firebaseListener = firebase.auth().onAuthStateChanged(firebaseUser => {
@@ -205,7 +224,8 @@ class Admin extends Component {
                                 this.setState({
                                     playerData: playersSnap.val(),
                                     window: 'admin'
-                                });
+                                })
+                                .then(this.sortPlayerData());
                             });
                         });
                     }else{
@@ -231,15 +251,40 @@ class Admin extends Component {
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Target</th>
-                        <th>Count</th>
+                        <th onClick={() => {
+                            this.setState({sort: 'name'});
+                            this.sortPlayerData();
+                        }}>Name</th>
+                        <th onClick={() => {
+                            this.setState({sort: 'name'});
+                            this.sortPlayerData();
+                        }}>Target</th>
+                        <th onClick={() => {
+                            this.setState({sort: 'counter'});
+                            this.sortPlayerData();
+                        }}>Count</th>
                     </tr>
                 </thead>
                 {
-                    this.state.playerData ?
+                    this.state.playerDataSorted ?
                     <tbody>
                         {
+                        this.state.playerDataSorted.forEach(player => {
+                            return(
+                                <Player
+                                    key={player.id}
+                                    counter={player.counter}
+                                    freeAgent={player.freeAgent}
+                                    id={player.id}
+                                    killSinceShuffle={player.killSinceShuffle}
+                                    kills={player.kills}
+                                    name={player.name}
+                                    status={player.status}
+                                    target={player.target}
+                                />
+                            );
+                        })
+                        /*
                         Object.keys(this.state.playerData).map(index => {
                             return(
                                 <Player 
@@ -255,6 +300,7 @@ class Admin extends Component {
                                 />
                             );
                         })
+                        */
                         }
                     </tbody>
                     :
