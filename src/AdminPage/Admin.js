@@ -225,7 +225,7 @@ class Admin extends Component {
                                     playerData: playersSnap.val(),
                                     window: 'admin'
                                 })
-                                .then(this.sortPlayerData());
+                                this.sortPlayerData();
                             });
                         });
                     }else{
@@ -269,7 +269,7 @@ class Admin extends Component {
                     this.state.playerDataSorted ?
                     <tbody>
                         {
-                        this.state.playerDataSorted.forEach(player => {
+                        this.state.playerDataSorted.map(player => {
                             return(
                                 <Player
                                     key={player.id}
