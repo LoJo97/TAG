@@ -30,10 +30,8 @@ const player = props => {
     }
 
     let targetName;
-    if(props.target){
-        firebase.database().ref(`users/${props.target}/name`).on('value', snap => {
-            targetName = snap.val();
-        });
+    if(props.targetName){
+        targetName = props.targetName;
     }else if(props.freeAgent){
         targetName = 'Free Agent';
     }else{

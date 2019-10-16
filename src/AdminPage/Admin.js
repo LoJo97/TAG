@@ -179,14 +179,14 @@ class Admin extends Component {
         let playerArr = [];
 
         Object.keys(data).map(index => {
-            data[index].targetName = data[data[index].target].name;
+            if(data[index].target) data[index].targetName = data[data[index].target].name;
             playerArr.push(data[index]);
         });
 
         if(this.state.sort === 'counter'){
             playerArr.sort((a, b) => (a.counter > b.counter) ? 1 : (a.counter === b.counter) ? ((a.name > b.name) ? 1 : -1) : -1);
         }if(this.state.sort === 'target'){
-            playerArr.sort((a, b) => (a.targetName > b.targetName) ? 1 : -1);
+            playerArr.sort((a, b) => ((a.targetName > b.targetName) || !a.targetName) ? 1 : -1);
         }else{
             playerArr.sort((a, b) => (a.name > b.name) ? 1 : -1);
         }
@@ -284,6 +284,7 @@ class Admin extends Component {
                                     name={player.name}
                                     status={player.status}
                                     target={player.target}
+                                    targetName={player.targetName}
                                 />
                             );
                         })
