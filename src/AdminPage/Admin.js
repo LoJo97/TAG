@@ -179,11 +179,14 @@ class Admin extends Component {
         let playerArr = [];
 
         Object.keys(data).map(index => {
+            data[index].targetName = data[data[index].target].name;
             playerArr.push(data[index]);
         });
 
         if(this.state.sort === 'counter'){
             playerArr.sort((a, b) => (a.counter > b.counter) ? 1 : (a.counter === b.counter) ? ((a.name > b.name) ? 1 : -1) : -1);
+        }if(this.state.sort === 'target'){
+            playerArr.sort((a, b) => (a.targetName > b.targetName) ? 1 : -1);
         }else{
             playerArr.sort((a, b) => (a.name > b.name) ? 1 : -1);
         }
@@ -256,7 +259,7 @@ class Admin extends Component {
                             this.sortPlayerData();
                         }}>Name</th>
                         <th onClick={() => {
-                            this.setState({sort: 'name'});
+                            this.setState({sort: 'target'});
                             this.sortPlayerData();
                         }}>Target</th>
                         <th onClick={() => {
@@ -284,23 +287,6 @@ class Admin extends Component {
                                 />
                             );
                         })
-                        /*
-                        Object.keys(this.state.playerData).map(index => {
-                            return(
-                                <Player 
-                                    key={this.state.playerData[index].id}
-                                    counter={this.state.playerData[index].counter}
-                                    freeAgent={this.state.playerData[index].freeAgent}
-                                    id={this.state.playerData[index].id}
-                                    killSinceShuffle={this.state.playerData[index].killSinceShuffle}
-                                    kills={this.state.playerData[index].kills}
-                                    name={this.state.playerData[index].name}
-                                    status={this.state.playerData[index].status}
-                                    target={this.state.playerData[index].target}
-                                />
-                            );
-                        })
-                        */
                         }
                     </tbody>
                     :
