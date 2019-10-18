@@ -498,6 +498,8 @@ exports.scheduledKillAnnouncement = functions.pubsub.schedule('0 22 * * *').time
 				for(key in gameData.killsToday){
 					msg += `${gameData.killsToday[key].victimName}\n`;
 				}
+				msg += `There are ${gameData.numLivePlayers} left alive\n`;
+				
 				let log = gameData.killsToday;
 				logPromise = admin.database().ref(`games/${gameData.id}/killLog`).push({log}) //Archive the log
 				.catch(e => {
