@@ -40,28 +40,17 @@ class SelectTarget extends Component {
         });
     }
 
+    //Starts the kill process by logging a kill, takes {target, assassin, gameId}
+    logKill = firebase.functions().httpsCallable('logKill');
+
     //Kills selected target (cloud function will take care of a lot of this)
     killTarget = () => {
-        let assassinID = this.state.firebaseUser.uid;
-        let targetRef = firebase.database().ref('users/' + this.state.selection);
-        let playerRef = firebase.database().ref(`users/${assassinID}`);
-
         let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');
         if(c){
-            targetRef.once('value').then(snapshot => {
-                //Updates cloud player data
-                playerRef.update({
-                    kills: this.state.kills + 1,
-                    killSinceShuffle: true,
-                    counter: 0,
-                    totalKills: this.state.totalKills + 1
-                })
-                .then(() => {
-                    //Update cloud target data
-                    targetRef.update({
-                        status: false
-                    });
-                });
+            this.logKill({
+                target: this.state.selection,
+                assassin: this.state.firebaseUser.uid,
+                gameId: this.state.gameId
             });
         }
     }

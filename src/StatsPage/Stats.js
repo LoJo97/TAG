@@ -98,38 +98,12 @@ class Stats extends Component{
     killTarget = () => {
         let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');
         if(c){
-            this.logKill({target: this.state.targetId, assassin: this.state.firebaseUser.uid, gameId: this.state.gameId});
+            this.logKill({
+                target: this.state.targetId,
+                assassin: this.state.firebaseUser.uid,
+                gameId: this.state.gameId
+            });
         }
-
-/*
-        if(!this.state.freeAgent){
-            let targetRef = firebase.database().ref(`users/${this.state.targetId}`);
-            let playerRef = firebase.database().ref(`users/${assassinID}`);
-
-            let c = window.confirm('Are you sure? Only mark your target as dead if you know the kill is not in dispute');
-            if(c){
-                this.setState({window: 'loading'});
-                targetRef.once('value').then(snapshot => {
-                    //Updates cloud player data
-                    playerRef.update({
-                        kills: this.state.kills + 1,
-                        killSinceShuffle: true,
-                        counter: 0,
-                        totalKills: this.state.totalKills + 1
-                    })
-                    .then(() => {
-                        //Update cloud target data
-                        targetRef.update({
-                            status: false
-                        })
-                        .then(() => {
-                            this.setState({window: 'stats'});
-                        });
-                    });
-                });
-            }
-        }
-*/
     }
 
     componentDidMount() {

@@ -30,10 +30,12 @@ exports.logKill = functions.https.onCall((data, context) => {
 				victimId: targetId,
 				victimName: targetSnap.val().name,
 				victimFreeAgent: targetSnap.val().freeAgent,
+				victimCounter: targetSnap.val().counter,
 				//Assassin data
 				assassinId: assassinId,
 				assassinName: assassinSnap.val().name,
-				assassinFreeAgent: assassinSnap.val().freeAgent
+				assassinFreeAgent: assassinSnap.val().freeAgent,
+				assassinCounter: assassinSnap.val().counter
 			})
 			.catch(e => {
 				console.log(e);
@@ -636,9 +638,7 @@ const shuffle = (freeAgent, gameId) => {
 		for(let playerID in playerData){
 			if(playerData[playerID].status){
 				playerArr[playerArr.length] = playerID;
-				if(!playerData[playerID].killSinceShuffle){
-					playerData[playerID].counter++;
-				}
+				playerData[playerID].counter++;
 				playerData[playerID].killSinceShuffle = false;
 				playerData[playerID].freeAgent = false;
 			}
