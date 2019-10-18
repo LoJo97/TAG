@@ -147,9 +147,9 @@ class Leaderboard extends Component{
                 <table>
                     <thead>
                         <tr>
-                            <th>Time</th>
-                            <th>Assassin</th>
-                            <th>Victim</th>
+                            <th>Player</th>
+                            <th>Time of Death</th>
+                            <th>Kills</th>
                         </tr>
                     </thead>
                     {
@@ -159,19 +159,22 @@ class Leaderboard extends Component{
                                 Object.keys(this.state.killLog).map(index => {
                                     return Object.keys(this.state.killLog[index].log).map(innerIndex => {
                                         let kill = this.state.killLog[index].log[innerIndex];
-                                        return(
-                                            <tr>
-                                                <td style={this.tdStyle}>
-                                                    {this.formatDate(kill.year, kill.month + 1, kill.day, kill.hour, kill.minutes)}
-                                                </td>
-                                                <td style={this.tdStyle}>
-                                                    {kill.assassinName}
-                                                </td>
-                                                <td style={this.tdStyle}>
-                                                    {kill.victimName}
-                                                </td>
-                                            </tr>
-                                        );
+                                        let numKills;
+                                        return firebase.database.ref(`users/${kill.victimId}/kills`).once('value').then(killSnap => {
+                                            return(
+                                                <tr>
+                                                    <td style={this.tdStyle}>
+                                                        {kill.victimName}
+                                                    </td>
+                                                    <td style={this.tdStyle}>
+                                                        {this.formatDate(kill.year, kill.month + 1, kill.day, kill.hour, kill.minutes)}
+                                                    </td>
+                                                    <td style={this.tdStyle}>
+                                                        {killSnap.val()}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        });                                        
                                     });
                                 })
                             }
